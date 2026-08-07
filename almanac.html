@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Almanac</title>
+<style>
+  :root {
+    --surface: #eef2e8;
+    --surface-raised: #ffffff;
+    --surface-sunken: #e4e9dc;
+    --ink: #232a1e;
+    --ink-muted: #5f6a56;
+    --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a;
+    --accent-ink: #3a2508;
+
+    --leaf: #b5622c;
+    --leaf-bg: rgba(181, 98, 44, 0.1);
+    --bud: #71923a;
+    --bud-bg: rgba(113, 146, 58, 0.12);
+    --petal: #b96a86;
+    --petal-bg: rgba(185, 106, 134, 0.12);
+    --toolkit: #6b6250;
+    --toolkit-bg: rgba(107, 98, 80, 0.1);
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #151a12;
+      --surface-raised: #1d2419;
+      --surface-sunken: #10140d;
+      --ink: #e8ebdf;
+      --ink-muted: #9aa48d;
+      --border: rgba(232, 235, 223, 0.14);
+      --accent: #dc9d51;
+      --accent-ink: #2a1a06;
+
+      --leaf: #d98452;
+      --leaf-bg: rgba(217, 132, 82, 0.16);
+      --bud: #9bc064;
+      --bud-bg: rgba(155, 192, 100, 0.16);
+      --petal: #d891ab;
+      --petal-bg: rgba(216, 145, 171, 0.16);
+      --toolkit: #a39a86;
+      --toolkit-bg: rgba(163, 154, 134, 0.14);
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface: #151a12;
+    --surface-raised: #1d2419;
+    --surface-sunken: #10140d;
+    --ink: #e8ebdf;
+    --ink-muted: #9aa48d;
+    --border: rgba(232, 235, 223, 0.14);
+    --accent: #dc9d51;
+    --accent-ink: #2a1a06;
+    --leaf: #d98452;
+    --leaf-bg: rgba(217, 132, 82, 0.16);
+    --bud: #9bc064;
+    --bud-bg: rgba(155, 192, 100, 0.16);
+    --petal: #d891ab;
+    --petal-bg: rgba(216, 145, 171, 0.16);
+    --toolkit: #a39a86;
+    --toolkit-bg: rgba(163, 154, 134, 0.14);
+  }
+  :root[data-theme="light"] {
+    --surface: #eef2e8;
+    --surface-raised: #ffffff;
+    --surface-sunken: #e4e9dc;
+    --ink: #232a1e;
+    --ink-muted: #5f6a56;
+    --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a;
+    --accent-ink: #3a2508;
+    --leaf: #b5622c;
+    --leaf-bg: rgba(181, 98, 44, 0.1);
+    --bud: #71923a;
+    --bud-bg: rgba(113, 146, 58, 0.12);
+    --petal: #b96a86;
+    --petal-bg: rgba(185, 106, 134, 0.12);
+    --toolkit: #6b6250;
+    --toolkit-bg: rgba(107, 98, 80, 0.1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 2.25rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+  }
+
+  .shelf-nav {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .shelf-nav a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 2px; }
+  .shelf-nav a:hover { color: var(--accent); }
+  .shelf-nav .current { color: var(--ink); }
+
+  .masthead { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .kicker {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.1rem, 5vw, 2.8rem);
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 36rem;
+    color: var(--ink-muted);
+    font-size: 1rem;
+  }
+
+  .section-heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  /* month strip */
+  .strip-wrap {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.1rem 1.1rem 0.9rem;
+    overflow-x: auto;
+  }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(2.2rem, 1fr));
+    gap: 0.2rem;
+    min-width: 30rem;
+    position: relative;
+  }
+
+  .strip-month {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .strip-band {
+    width: 100%;
+    height: 0.55rem;
+    border-radius: 0.2rem;
+    background: var(--surface-sunken);
+  }
+
+  .strip-band.leaf { background: var(--leaf); }
+  .strip-band.bud { background: var(--bud); }
+  .strip-band.petal { background: var(--petal); }
+
+  .strip-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .strip-month.is-today .strip-label {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .strip-month.is-today .strip-band::after {
+    content: "";
+    display: block;
+  }
+
+  .today-mark {
+    position: absolute;
+    top: -0.6rem;
+    transform: translateX(-50%);
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+
+  .strip-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 0.9rem;
+    padding-top: 0.8rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+  }
+
+  .legend-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-dot.leaf { background: var(--leaf); }
+  .legend-dot.bud { background: var(--bud); }
+  .legend-dot.petal { background: var(--petal); }
+
+  /* plates */
+  .plates { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .plate {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    overflow: hidden;
+  }
+
+  .plate-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+
+  .plate-head:hover { background: var(--surface-sunken); }
+  .plate-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .plate-icon {
+    flex-shrink: 0;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .plate-icon svg { width: 1.5rem; height: 1.5rem; }
+
+  .plate.leaf .plate-icon { background: var(--leaf-bg); color: var(--leaf); }
+  .plate.bud .plate-icon { background: var(--bud-bg); color: var(--bud); }
+  .plate.petal .plate-icon { background: var(--petal-bg); color: var(--petal); }
+  .plate.toolkit .plate-icon { background: var(--toolkit-bg); color: var(--toolkit); }
+
+  .plate-title-group { flex: 1; min-width: 0; }
+
+  .plate-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .plate-when {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .plate-summary {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin-top: 0.15rem;
+    display: none;
+  }
+
+  @media (min-width: 32rem) {
+    .plate-summary { display: block; }
+  }
+
+  .plate-chevron {
+    flex-shrink: 0;
+    color: var(--ink-muted);
+    transition: transform 0.15s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .plate-chevron { transition: none; }
+  }
+  .plate.is-open .plate-chevron { transform: rotate(180deg); }
+
+  .plate-body {
+    display: none;
+    padding: 0 1rem 1.1rem 1rem;
+  }
+  .plate.is-open .plate-body { display: block; }
+
+  .plate-body-inner {
+    padding-left: calc(2.6rem + 0.9rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .plate-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .plate-list li {
+    position: relative;
+    padding-left: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .plate-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.5;
+  }
+
+  .plate.leaf .plate-body-inner { color: var(--ink); }
+  .plate-note {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  /* chapter free-text boxes (reuses The Feed's notes-editable pattern) */
+  .chapter-editable {
+    width: 100%;
+    min-height: 8rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    resize: vertical;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .chapter-editable:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chapter-editable:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-muted);
+    opacity: 0.8;
+  }
+
+  footer {
+    color: var(--ink-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    max-width: 30rem;
+    margin: 0 auto;
+  }
+</style>
+
+<div class="page">
+  <nav class="shelf-nav">
+    <span class="current">The Almanac</span>
+    <span>&middot;</span>
+    <a href="feed.html">The Feed</a>
+    <span>&middot;</span>
+    <a href="spray.html">The Spray</a>
+  </nav>
+
+  <header class="masthead">
+    <p class="kicker">Front matter &middot; seasonal timeline</p>
+    <h1>The Almanac</h1>
+    <p class="lede">Four points in the year that matter, and what to reach for at each one. Symbols and colour carry the shape of it — tap any plate for the detail.</p>
+  </header>
+
+  <div class="strip-wrap">
+    <div class="strip" id="strip"></div>
+    <div class="strip-legend">
+      <span class="legend-item"><span class="legend-dot leaf"></span>Leaf fall</span>
+      <span class="legend-item"><span class="legend-dot bud"></span>Budswell</span>
+      <span class="legend-item"><span class="legend-dot petal"></span>Petal fall</span>
+    </div>
+  </div>
+
+  <div class="plates" id="plates"></div>
+
+  <div>
+    <h2 class="section-heading" style="margin-bottom: 0.75rem;">Chapters</h2>
+    <p class="lede" style="margin-bottom: 0.75rem;">The how-to, by topic. Tap to open, write straight into the box — it saves as you go.</p>
+    <div class="plates" id="chapters"></div>
+  </div>
+
+  <footer>Saved in this browser only, for now.</footer>
+</div>
+
+<script>
+(function () {
+  var ICONS = {
+    leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-4.5 1-7 5-6 10 1 4.5 5 7 9 6 3-.8 4.5-3.5 4-7-.6-4-3.5-8-7-9z"/><path d="M9 19c1-4 2-9 7-13"/><path d="M4 21c2.5-1 4-2.5 5-4"/></svg>',
+    bud: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="M8 21c3-1 4-1 8 0"/><path d="M12 9c-2.8 0-4.6-1.8-4.6-4.6C7.4 3 8 3 9.5 3.6 11 4.2 12 5.6 12 9z"/><path d="M12 9c2.8 0 4.6-1.8 4.6-4.6C16.6 3 16 3 14.5 3.6 13 4.2 12 5.6 12 9z"/></svg>',
+    petal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10.5" r="1.4" fill="currentColor" stroke="none"/><path d="M12 9.2C11 6.8 9.6 5.6 12 3.4c2.4 2.2 1 3.4 0 5.8z"/><path d="M13.3 11c2.6-.4 4.3.4 6.7-1.6-1.7-2.7-3.2-1.8-6.7 1.6z"/><path d="M10.7 11c-2.6-.4-4.3.4-6.7-1.6 1.7-2.7 3.2-1.8 6.7 1.6z"/><path d="M12.8 11.7c1.2 2.4.8 4.2 3.6 5.9-2.3 2.4-3.4.7-3.6-5.9z"/><path d="M17.5 15.5c1.8 1.7 1.6 3.6 4.5 4-.3-3.2-1.7-3.7-4.5-4z"/></svg>',
+    toolkit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10l9-5 2 2-5 9-2-1 3-5.5L9 12l-1.5 3-2-1z"/><circle cx="6.5" cy="17.5" r="2.3"/></svg>',
+    pruning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><path d="M7.8 7.6L20 20"/><path d="M7.8 16.4L20 4"/></svg>',
+    fertilising: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4-2.5-6-5.5-6-9a6 6 0 0 1 12 0c0 3.5-2 6.5-6 9z"/><path d="M12 17V9"/></svg>',
+    spraying: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h4v4l-2 2-2-2z"/><rect x="5" y="9" width="8" height="12" rx="1.5"/><path d="M16 8l2-1.5M18 11h2.5M16.5 14l2 1.2"/></svg>',
+    pests: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="13" rx="4" ry="6"/><path d="M12 7V4M9 5l1.5 2M15 5l-1.5 2"/><path d="M8 10L4 8M8 14L3.5 14M8 18l-3.5 2.5"/><path d="M16 10l4-2M16 14l4.5 0M16 18l3.5 2.5"/></svg>'
+  };
+
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var BANDS = {
+    3: 'leaf', 4: 'leaf',
+    7: 'bud',
+    8: 'petal', 9: 'petal', 10: 'petal'
+  };
+
+  var todayMonthIndex = new Date().getMonth();
+
+  var stripEl = document.getElementById('strip');
+  MONTHS.forEach(function (m, i) {
+    var band = BANDS[i] || '';
+    var isToday = i === todayMonthIndex;
+    var el = document.createElement('div');
+    el.className = 'strip-month' + (isToday ? ' is-today' : '');
+    el.innerHTML =
+      (isToday ? '<span class="today-mark">&#9660;</span>' : '') +
+      '<div class="strip-band ' + band + '"></div>' +
+      '<span class="strip-label">' + m + '</span>';
+    stripEl.appendChild(el);
+  });
+
+  var PLATES = [
+    {
+      key: 'leaf',
+      title: 'Leaf fall',
+      when: 'Mid-April – May',
+      summary: 'Bordeaux spray, timed to the drop.',
+      items: [
+        'Spray homemade Bordeaux at around 50% leaf fall, before the tree is fully bare.',
+        'For the stubborn front plum specifically: spray once before it drops, then again once it actually finishes dropping — don’t rely on full drop alone.',
+        'Protects against bacterial canker on the stone fruit, plums and cherries especially.'
+      ]
+    },
+    {
+      key: 'bud',
+      title: 'Budswell',
+      when: 'August, just before buds open',
+      summary: 'Spray and main feed, together.',
+      items: [
+        'Spray lime sulphur or a Bordeaux top-up right before buds swell — not after they start opening.',
+        'Neem oil goes on around the same time, timed to catch the plum aphid as buds open.',
+        'Main fertilise: Dynamic Lifter, urea, potash.',
+        'Small phosphorus dose only where it’s actually needed — new plantings and the potted lemon.',
+        'Magnesium for the lemons here too, since that’s where deficiency has been showing.'
+      ]
+    },
+    {
+      key: 'petal',
+      title: 'Petal fall',
+      when: 'September – November, weather-dependent',
+      summary: 'Not a fixed date — triggered by blossom finishing.',
+      items: [
+        'No calendar slot — this follows the blossom, not the month.',
+        'Watch the cherries especially: brown rot risk goes up if it’s wet around petal fall.',
+        'Chlorothalonil if conditions call for it.'
+      ]
+    },
+    {
+      key: 'toolkit',
+      title: 'Reactive toolkit',
+      when: 'No season — as needed',
+      summary: 'Pyrethrum, chlorothalonil, Seasol.',
+      items: [
+        'Pyrethrum — only when whitefly actually shows up.',
+        'Chlorothalonil — general fungal issues outside the petal-fall window.',
+        'Seasol is a tonic, not a feed, so it skips the timing rules above — run it every 4–6 weeks through the growing season if you like.'
+      ]
+    }
+  ];
+
+  var platesEl = document.getElementById('plates');
+  PLATES.forEach(function (p) {
+    var plate = document.createElement('div');
+    plate.className = 'plate ' + p.key;
+
+    var head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'plate-head';
+    head.innerHTML =
+      '<span class="plate-icon">' + ICONS[p.key] + '</span>' +
+      '<span class="plate-title-group">' +
+        '<div class="plate-title">' + p.title + '</div>' +
+        '<div class="plate-when">' + p.when + '</div>' +
+        '<div class="plate-summary">' + p.summary + '</div>' +
+      '</span>' +
+      '<span class="plate-chevron">&#9662;</span>';
+
+    var body = document.createElement('div');
+    body.className = 'plate-body';
+    var inner = document.createElement('div');
+    inner.className = 'plate-body-inner';
+    var list = document.createElement('ul');
+    list.className = 'plate-list';
+    p.items.forEach(function (item) {
+      var li = document.createElement('li');
+      li.textContent = item;
+      list.appendChild(li);
+    });
+    inner.appendChild(list);
+    body.appendChild(inner);
+
+    head.addEventListener('click', function () {
+      plate.classList.toggle('is-open');
+    });
+
+    plate.appendChild(head);
+    plate.appendChild(body);
+    platesEl.appendChild(plate);
+  });
+
+  // --- Chapters: free-text how-to, by topic. Same editable-div pattern as
+  // The Feed's per-tree Notes field — contentEditable, autosaves to
+  // localStorage, Ctrl/Cmd+B bolds, paste is stripped to plain text so a
+  // paste from elsewhere doesn't drag its own styling in (the "box inside
+  // a box" bug fixed in The Feed applies here too).
+  var CHAPTER_STORAGE_KEY = 'orchard-almanac-chapters-v1';
+  var CHAPTERS = [
+    { key: 'pruning', title: 'Pruning', icon: 'pruning' },
+    { key: 'fertilising', title: 'Fertilising', icon: 'fertilising' },
+    { key: 'spraying', title: 'Spraying', icon: 'spraying' },
+    { key: 'pests', title: 'Pests', icon: 'pests' }
+  ];
+
+  function loadChapterText() {
+    try {
+      var raw = localStorage.getItem(CHAPTER_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {};
+  }
+
+  var chapterText = loadChapterText();
+
+  function saveChapterText() {
+    localStorage.setItem(CHAPTER_STORAGE_KEY, JSON.stringify(chapterText));
+  }
+
+  var chaptersEl = document.getElementById('chapters');
+  CHAPTERS.forEach(function (c) {
+    var plate = document.createElement('div');
+    plate.className = 'plate toolkit';
+
+    var head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'plate-head';
+    head.innerHTML =
+      '<span class="plate-icon">' + ICONS[c.icon] + '</span>' +
+      '<span class="plate-title-group">' +
+        '<div class="plate-title">' + c.title + '</div>' +
+      '</span>' +
+      '<span class="plate-chevron">&#9662;</span>';
+
+    var body = document.createElement('div');
+    body.className = 'plate-body';
+    var inner = document.createElement('div');
+    inner.className = 'plate-body-inner';
+
+    var editable = document.createElement('div');
+    editable.className = 'chapter-editable';
+    editable.contentEditable = 'true';
+    editable.setAttribute('data-placeholder', 'Write whatever you like here...');
+    editable.innerHTML = chapterText[c.key] || '';
+    editable.addEventListener('input', function () {
+      chapterText[c.key] = editable.innerHTML;
+      saveChapterText();
+    });
+    editable.addEventListener('keydown', function (ev) {
+      var mod = ev.metaKey || ev.ctrlKey;
+      if (mod && (ev.key === 'b' || ev.key === 'B')) {
+        ev.preventDefault();
+        document.execCommand('bold');
+        chapterText[c.key] = editable.innerHTML;
+        saveChapterText();
+      }
+    });
+    editable.addEventListener('paste', function (ev) {
+      ev.preventDefault();
+      var text = (ev.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+
+    inner.appendChild(editable);
+    body.appendChild(inner);
+
+    head.addEventListener('click', function () {
+      plate.classList.toggle('is-open');
+    });
+
+    plate.appendChild(head);
+    plate.appendChild(body);
+    chaptersEl.appendChild(plate);
+  });
+})();
+</script>

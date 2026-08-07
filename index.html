@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Orchard</title>
+<style>
+  :root {
+    --surface: #eef2e8;
+    --surface-raised: #ffffff;
+    --ink: #232a1e;
+    --ink-muted: #5f6a56;
+    --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a;
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #151a12;
+      --surface-raised: #1d2419;
+      --ink: #e8ebdf;
+      --ink-muted: #9aa48d;
+      --border: rgba(232, 235, 223, 0.14);
+      --accent: #dc9d51;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+  .wrap { max-width: 26rem; padding: 2rem 1.25rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .kicker { margin: 0; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 0; font-family: var(--font-display); font-size: 2.4rem; font-weight: 600; }
+  .shelf { display: flex; flex-direction: column; gap: 0.7rem; }
+  a.book {
+    display: block; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 0.6rem;
+    padding: 1rem 1.1rem; text-decoration: none; color: var(--ink); font-family: var(--font-display); font-size: 1.1rem; font-weight: 600;
+    transition: transform 0.1s ease;
+  }
+  a.book span { display: block; font-family: var(--font-body); font-size: 0.82rem; font-weight: 400; color: var(--ink-muted); margin-top: 0.2rem; }
+  a.book:hover { transform: translateY(-1px); border-color: var(--accent); }
+</style>
+<div class="wrap">
+  <p class="kicker">The Orchard</p>
+  <h1>Pick a chapter</h1>
+  <div class="shelf">
+    <a class="book" href="feed.html">The Feed<span>Fertilising, per tree, per season</span></a>
+    <a class="book" href="almanac.html">The Almanac<span>The seasonal front matter and how-to chapters</span></a>
+    <a class="book" href="spray.html">The Spray<span>Fungal spray and pest watch, per tree</span></a>
+  </div>
+</div>

@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Feed</title>
+<style>
+  :root {
+    --surface: #eef2e8;
+    --surface-raised: #ffffff;
+    --surface-sunken: #e4e9dc;
+    --ink: #232a1e;
+    --ink-muted: #5f6a56;
+    --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a;
+    --accent-ink: #3a2508;
+
+    --budswell: #71923a;
+    --budswell-bg: rgba(113, 146, 58, 0.12);
+    --budswell-ink: #f5f7f0;
+    --autumn: #b5622c;
+    --autumn-bg: rgba(181, 98, 44, 0.1);
+    --autumn-ink: #fbf3ee;
+    --summer: #b5900f;
+    --summer-bg: rgba(181, 144, 15, 0.12);
+    --summer-ink: #2a2004;
+    --done: #4c7a4a;
+    --done-bg: rgba(76, 122, 74, 0.12);
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #151a12;
+      --surface-raised: #1d2419;
+      --surface-sunken: #10140d;
+      --ink: #e8ebdf;
+      --ink-muted: #9aa48d;
+      --border: rgba(232, 235, 223, 0.14);
+      --accent: #dc9d51;
+      --accent-ink: #2a1a06;
+      --budswell: #9bc064;
+      --budswell-bg: rgba(155, 192, 100, 0.16);
+      --budswell-ink: #16210d;
+      --autumn: #d98452;
+      --autumn-bg: rgba(217, 132, 82, 0.16);
+      --autumn-ink: #2a1608;
+      --summer: #dcb945;
+      --summer-bg: rgba(220, 185, 69, 0.16);
+      --summer-ink: #2a2004;
+      --done: #7bae72;
+      --done-bg: rgba(123, 174, 114, 0.16);
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface: #151a12;
+    --surface-raised: #1d2419;
+    --surface-sunken: #10140d;
+    --ink: #e8ebdf;
+    --ink-muted: #9aa48d;
+    --border: rgba(232, 235, 223, 0.14);
+    --accent: #dc9d51;
+    --accent-ink: #2a1a06;
+    --budswell: #9bc064;
+    --budswell-bg: rgba(155, 192, 100, 0.16);
+    --budswell-ink: #16210d;
+    --autumn: #d98452;
+    --autumn-bg: rgba(217, 132, 82, 0.16);
+    --autumn-ink: #2a1608;
+    --summer: #dcb945;
+    --summer-bg: rgba(220, 185, 69, 0.16);
+    --summer-ink: #2a2004;
+    --done: #7bae72;
+    --done-bg: rgba(123, 174, 114, 0.16);
+  }
+  :root[data-theme="light"] {
+    --surface: #eef2e8;
+    --surface-raised: #ffffff;
+    --surface-sunken: #e4e9dc;
+    --ink: #232a1e;
+    --ink-muted: #5f6a56;
+    --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a;
+    --accent-ink: #3a2508;
+    --budswell: #71923a;
+    --budswell-bg: rgba(113, 146, 58, 0.12);
+    --budswell-ink: #f5f7f0;
+    --autumn: #b5622c;
+    --autumn-bg: rgba(181, 98, 44, 0.1);
+    --autumn-ink: #fbf3ee;
+    --summer: #b5900f;
+    --summer-bg: rgba(181, 144, 15, 0.12);
+    --summer-ink: #2a2004;
+    --done: #4c7a4a;
+    --done-bg: rgba(76, 122, 74, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 2.25rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+  }
+
+  .shelf-nav {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .shelf-nav a, .shelf-nav button.linklike {
+    color: var(--ink-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    background: none;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    padding: 0;
+    cursor: pointer;
+  }
+  .shelf-nav a:hover, .shelf-nav button.linklike:hover { color: var(--accent); }
+  .shelf-nav .current { color: var(--ink); }
+
+  .masthead { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .kicker {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.1rem, 5vw, 2.8rem);
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 36rem;
+    color: var(--ink-muted);
+    font-size: 1rem;
+  }
+
+  .key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 0.8rem 1rem;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+  }
+
+  .key-item { display: flex; align-items: center; gap: 0.4rem; }
+
+  .key-swatch {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+  }
+  .key-swatch.budswell { background: var(--budswell); }
+  .key-swatch.autumn { background: var(--autumn); }
+  .key-swatch.summer { background: var(--summer); }
+  .key-swatch.todo { background: var(--surface-sunken); border: 1px solid var(--border); }
+
+  .category { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .category-heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .cards { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .plant-link {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--ink);
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .plant-link:hover { color: var(--accent); }
+  .plant-link:hover .plant-link-arrow { transform: translateX(2px); }
+  .plant-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 0.2rem; }
+  .plant-link-arrow {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    transition: transform 0.12s ease;
+  }
+  @media (prefers-reduced-motion: reduce) { .plant-link-arrow { transition: none; } }
+
+  .feed-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  button.feed-btn {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.45rem 0.8rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: transform 0.1s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  @media (prefers-reduced-motion: reduce) { button.feed-btn { transition: none; } }
+  button.feed-btn:hover { transform: translateY(-1px); }
+  button.feed-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .feed-btn .tick { font-size: 1.05em; font-weight: 700; visibility: hidden; }
+
+  .feed-btn.core, .feed-btn.optional.autumn, .feed-btn.optional.summer {
+    background: var(--surface-sunken);
+    color: var(--ink-muted);
+    border: 1px solid var(--border);
+  }
+
+  .feed-btn.core.is-done { background: var(--budswell); color: var(--budswell-ink); border-color: transparent; }
+  .feed-btn.optional.autumn.is-done { background: var(--autumn); color: var(--autumn-ink); border-color: transparent; }
+  .feed-btn.optional.summer.is-done { background: var(--summer); color: var(--summer-ink); border-color: transparent; }
+  .feed-btn.is-done .tick { visibility: visible; }
+
+  .extras-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-top: 0.3rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  .extra-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-sunken);
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .extra-btn:hover { transform: translateY(-1px); }
+  .extra-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .extra-btn.is-done { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+
+  /* detail view */
+  .detail { display: flex; flex-direction: column; gap: 2rem; }
+
+  .detail-header { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .detail-category {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .detail-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-weight: 600;
+    outline: none;
+    border-radius: 0.3rem;
+    padding: 0.05rem 0.2rem;
+    margin: -0.05rem -0.2rem;
+  }
+  .detail-name:hover { background: var(--surface-sunken); cursor: text; }
+  .detail-name:focus-visible { box-shadow: 0 0 0 2px var(--accent); background: var(--surface-sunken); }
+
+  .rename-hint { margin: 0; font-size: 0.78rem; color: var(--ink-muted); }
+
+  .panel {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .panel h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .panel-hint { margin: 0; font-size: 0.8rem; color: var(--ink-muted); }
+
+  .notes-editable {
+    width: 100%;
+    min-height: 16rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    resize: vertical;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .notes-editable:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .notes-editable:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-muted);
+    opacity: 0.8;
+  }
+
+  .add-event-btn {
+    align-self: flex-start;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.4rem;
+    border: 1px dashed var(--border);
+    background: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .add-event-btn:hover { color: var(--ink); border-color: var(--ink-muted); }
+  .add-event-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .history-list { display: flex; flex-direction: column; gap: 0; }
+  .history-empty { font-size: 0.85rem; color: var(--ink-muted); font-style: italic; }
+
+  .history-row {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.4rem 1.6rem 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.86rem;
+  }
+  .history-row:last-child { border-bottom: none; }
+
+  button.history-date {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: inherit;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  button.history-date:hover { color: var(--accent); }
+  button.history-date:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .history-date-input {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+    background: var(--surface);
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  .history-label { font-weight: 600; flex-shrink: 0; }
+  .history-label.is-event { color: var(--accent); }
+
+  button.history-body {
+    font: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+    flex: 1 1 auto;
+    min-width: 3rem;
+  }
+  button.history-body:hover .history-label,
+  button.history-body:hover .history-note-text { color: var(--accent); }
+  button.history-body:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .history-note-text { color: var(--ink); }
+
+  .entry-note {
+    width: 100%;
+    min-height: 2.6rem;
+    resize: vertical;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    line-height: 1.5;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    background: var(--surface);
+    color: var(--ink);
+    margin-top: 0.2rem;
+  }
+  .entry-note::placeholder { color: var(--ink-muted); opacity: 0.7; }
+  .entry-note:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .history-del {
+    position: absolute;
+    top: 0.4rem;
+    right: 0;
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .history-row:hover .history-del,
+  .history-del:focus-visible { opacity: 1; }
+  .history-del:hover { color: var(--autumn); }
+  .history-del:focus-visible { outline: 2px solid var(--accent); }
+  .history-del.is-confirming {
+    opacity: 1;
+    color: var(--autumn-ink);
+    background: var(--autumn);
+    border-radius: 999px;
+    padding: 0 0.25rem;
+  }
+
+  .remove-plant {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    font-size: 0.8rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .remove-plant:hover { color: var(--autumn); }
+
+  .remove-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--autumn);
+    border-radius: 0.5rem;
+    background: var(--autumn-bg);
+  }
+
+  .remove-confirm-text { margin: 0; font-size: 0.85rem; color: var(--ink); }
+
+  .remove-confirm-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+  .remove-confirm-input {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    background: var(--surface-raised);
+    color: var(--ink);
+    flex: 1 1 12rem;
+  }
+  .remove-confirm-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .btn-danger {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--autumn);
+    color: var(--autumn-ink);
+    border: none;
+    border-radius: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    cursor: pointer;
+  }
+  .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-danger:not(:disabled):hover { transform: translateY(-1px); }
+  .btn-danger:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .add-plant {
+    border-top: 1px solid var(--border);
+    padding-top: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .add-plant h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .add-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+  .add-form input[type="text"], .add-form select {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .add-form input[type="text"] { flex: 1 1 12rem; }
+
+  .add-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+  }
+
+  .btn-primary {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    border-radius: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    cursor: pointer;
+  }
+  .btn-primary:focus-visible { outline: 2px solid var(--budswell); outline-offset: 2px; }
+
+  footer {
+    color: var(--ink-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    max-width: 30rem;
+    margin: 0 auto;
+  }
+</style>
+
+<div class="page">
+  <nav class="shelf-nav" id="shelf-nav">
+    <a href="almanac.html">The Almanac</a>
+    <span>&middot;</span>
+    <span class="current">The Feed</span>
+    <span>&middot;</span>
+    <a href="spray.html">The Spray</a>
+  </nav>
+
+  <div id="view"></div>
+
+  <footer>Saved in this browser only, for now.</footer>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = 'orchard-feed-v2';
+  var LEGACY_KEY = 'orchard-feed-v1';
+  var CATEGORIES = ['Stone fruit', 'Pome', 'Citrus', 'Berries & cane', 'Other'];
+
+  var SEED = [
+    { name: 'Plum #1', category: 'Stone fruit' },
+    { name: 'Plum #2', category: 'Stone fruit' },
+    { name: 'White peach', category: 'Stone fruit' },
+    { name: 'Dwarf yellow peach', category: 'Stone fruit' },
+    { name: 'Pear', category: 'Pome' },
+    { name: 'Dwarf apple #1', category: 'Pome' },
+    { name: 'Dwarf apple #2', category: 'Pome' },
+    { name: 'Lemon #1', category: 'Citrus', citrus: true },
+    { name: 'Lemon #2', category: 'Citrus', citrus: true },
+    { name: 'Lime #1', category: 'Citrus', citrus: true },
+    { name: 'Lime #2', category: 'Citrus', citrus: true },
+    { name: 'Blueberries (×5)', category: 'Berries & cane' },
+    { name: 'Blackberry', category: 'Berries & cane' },
+    { name: 'Raspberries', category: 'Berries & cane' },
+    { name: 'Strawberry patch', category: 'Berries & cane' },
+    { name: 'Gooseberry (the unhappy one)', category: 'Berries & cane' },
+    { name: 'Feijoa #1', category: 'Other' },
+    { name: 'Feijoa #2', category: 'Other' },
+    { name: 'Passionfruit', category: 'Other' }
+  ];
+
+  var FEEDS = [
+    { key: 'autumn', label: 'Autumn feed', anchorMonth: 3, cls: 'optional autumn' },
+    { key: 'budswell', label: 'Budswell feed', anchorMonth: 7, cls: 'core' },
+    { key: 'summer', label: 'Summer feed', anchorMonth: 10, cls: 'optional summer' }
+  ];
+
+  var EXTRAS = [
+    { key: 'phosphorus', label: 'Phosphorus', anchorMonth: 7 },
+    { key: 'magnesium', label: 'Magnesium', anchorMonth: 7 }
+  ];
+
+  var ALL_FEED_DEFS = FEEDS.concat(EXTRAS);
+
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+
+  function slug(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  function todayISO() {
+    var d = new Date();
+    var mo = String(d.getMonth() + 1).padStart(2, '0');
+    var da = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + mo + '-' + da;
+  }
+
+  // One shared season label for the whole app, not one per feed. Everything
+  // is "this year" until Feb 1, when the whole cycle rolls forward at once
+  // and all ticks clear together. (Used to compute each feed's year from
+  // its own anchor month, which meant two buttons in the same row could
+  // disagree about what year it was — one rolled forward, one hadn't.)
+  var SEASON_RESET_MONTH = 1; // February (0 = Jan)
+  var SEASON_RESET_DAY = 1;
+
+  function seasonCycleOf(dateISO) {
+    var d = new Date(dateISO + 'T00:00:00');
+    var y = d.getFullYear();
+    var resetThisYear = new Date(y, SEASON_RESET_MONTH, SEASON_RESET_DAY);
+    return d < resetThisYear ? y - 1 : y;
+  }
+
+  function currentSeasonCycle() { return seasonCycleOf(todayISO()); }
+
+  // Old per-feed formula, kept only so the one-time migration below can
+  // tell which existing ticks were "current" under the old rule.
+  function legacyAnchorCycleOf(dateISO, anchorMonth) {
+    var d = new Date(dateISO + 'T00:00:00');
+    var y = d.getFullYear();
+    var m = d.getMonth();
+    return m > anchorMonth ? y + 1 : y;
+  }
+
+  function anchorMonthOf(key) {
+    var def = ALL_FEED_DEFS.filter(function (f) { return f.key === key; })[0];
+    return def ? def.anchorMonth : 0;
+  }
+
+  // Old (v2) rule: "done this cycle" was inferred from the presence of a
+  // history entry. That's what made un-ticking delete notes — the tick
+  // and the log entry were the same piece of data. We now track a tick
+  // (plant.done[key] = cycle number) separately from the history log
+  // (plant.feeds[key] = [{date, note}, ...]), which is append-only except
+  // for the explicit delete button on the tree's own page.
+  function legacyDoneThisCycle(plant, key, anchorMonth) {
+    var h = (plant.feeds && plant.feeds[key]) || [];
+    return h.length > 0 && legacyAnchorCycleOf(h[0].date, anchorMonth) === legacyAnchorCycleOf(todayISO(), anchorMonth);
+  }
+
+  function migrateLegacyV1() {
+    var raw = localStorage.getItem(LEGACY_KEY);
+    if (!raw) return null;
+    var old;
+    try { old = JSON.parse(raw); } catch (e) { return null; }
+
+    return SEED.map(function (p) {
+      var legacyId = slug(p.name);
+      var feeds = {};
+      var legacyRecs = old[legacyId] || {};
+      Object.keys(legacyRecs).forEach(function (key) {
+        var rec = legacyRecs[key];
+        feeds[key] = [{ date: rec.date, note: rec.note || '' }];
+      });
+      return { id: uid(), name: p.name, category: p.category, citrus: !!p.citrus, notes: '', notesMigrated: true, feeds: feeds, done: {}, events: [], cycleRenumbered: true };
+    });
+  }
+
+  // Notes used to be plain text in a <textarea>. They're now stored as the
+  // innerHTML of a contentEditable div so Ctrl/Cmd+B can bold text in place.
+  // Migrate once per plant so old plain-text notes don't get mangled by
+  // being re-interpreted as HTML (a stray "<" or "&" would otherwise break).
+  function ensureNotesMigrated(plants) {
+    var changed = false;
+    plants.forEach(function (plant) {
+      if (!plant.notesMigrated) {
+        plant.notes = escapeHtml(plant.notes || '').replace(/\n/g, '<br>');
+        plant.notesMigrated = true;
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
+  function ensureCycleRenumbered(plants) {
+    var changed = false;
+    plants.forEach(function (plant) {
+      if (!plant.cycleRenumbered) {
+        if (plant.done) {
+          Object.keys(plant.done).forEach(function (key) {
+            plant.done[key] = plant.done[key] + 1;
+          });
+        }
+        plant.cycleRenumbered = true;
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
+  function ensureDoneState(plants) {
+    var changed = false;
+    plants.forEach(function (plant) {
+      if (!plant.done) {
+        plant.done = {};
+        changed = true;
+      }
+      if (!plant.events) {
+        plant.events = [];
+        changed = true;
+      }
+      ALL_FEED_DEFS.forEach(function (f) {
+        if (plant.done[f.key] === undefined && legacyDoneThisCycle(plant, f.key, f.anchorMonth)) {
+          plant.done[f.key] = legacyAnchorCycleOf(todayISO(), f.anchorMonth);
+          changed = true;
+        }
+      });
+    });
+    return changed;
+  }
+
+  // One-time move from the old per-feed cycle numbering to the single
+  // shared season number. Anything that currently reads as "done" under
+  // the old per-anchor rule gets relabelled with today's season number,
+  // so nothing that's ticked right now appears to un-tick itself.
+  function ensureSingleCycleMigrated(plants) {
+    var changed = false;
+    var newCycle = currentSeasonCycle();
+    plants.forEach(function (plant) {
+      if (!plant.singleCycleMigrated) {
+        if (plant.done) {
+          Object.keys(plant.done).forEach(function (key) {
+            var anchorMonth = anchorMonthOf(key);
+            if (plant.done[key] === legacyAnchorCycleOf(todayISO(), anchorMonth)) {
+              plant.done[key] = newCycle;
+            }
+          });
+        }
+        plant.singleCycleMigrated = true;
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
+  function loadPlants() {
+    var plants = null;
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) plants = JSON.parse(raw);
+    } catch (e) {}
+
+    if (!plants) {
+      plants = migrateLegacyV1() || SEED.map(function (p) {
+        return { id: uid(), name: p.name, category: p.category, citrus: !!p.citrus, notes: '', notesMigrated: true, feeds: {}, done: {}, events: [], cycleRenumbered: true };
+      });
+    }
+
+    var changed = ensureCycleRenumbered(plants);
+    if (ensureDoneState(plants)) changed = true;
+    if (ensureSingleCycleMigrated(plants)) changed = true;
+    if (ensureNotesMigrated(plants)) changed = true;
+    if (changed) savePlants(plants);
+    return plants;
+  }
+
+  function savePlants(plants) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+  }
+
+  var plants = loadPlants();
+
+  function findPlant(id) {
+    for (var i = 0; i < plants.length; i++) if (plants[i].id === id) return plants[i];
+    return null;
+  }
+
+  function history(plant, key) { return (plant.feeds && plant.feeds[key]) || []; }
+
+  function isDoneThisCycle(plant, key) {
+    return plant.done && plant.done[key] === currentSeasonCycle();
+  }
+
+  function toggleFeed(plantId, key) {
+    var plant = findPlant(plantId);
+    if (!plant.feeds) plant.feeds = {};
+    if (!plant.feeds[key]) plant.feeds[key] = [];
+    if (!plant.done) plant.done = {};
+
+    if (isDoneThisCycle(plant, key)) {
+      delete plant.done[key];
+    } else {
+      plant.done[key] = currentSeasonCycle();
+      var already = plant.feeds[key].some(function (rec) {
+        return seasonCycleOf(rec.date) === currentSeasonCycle();
+      });
+      if (!already) plant.feeds[key].unshift({ date: todayISO(), note: '' });
+    }
+    savePlants(plants);
+    renderRoute();
+  }
+
+  function setHistoryNote(plantId, key, index, value) {
+    var plant = findPlant(plantId);
+    if (plant.feeds && plant.feeds[key] && plant.feeds[key][index]) {
+      plant.feeds[key][index].note = value;
+      savePlants(plants);
+    }
+  }
+
+  function setHistoryDate(plantId, key, index, value) {
+    var plant = findPlant(plantId);
+    if (plant.feeds && plant.feeds[key] && plant.feeds[key][index]) {
+      plant.feeds[key][index].date = value;
+      savePlants(plants);
+    }
+  }
+
+  function deleteHistoryEntry(plantId, key, index) {
+    var plant = findPlant(plantId);
+    var rec = plant.feeds[key][index];
+    plant.feeds[key].splice(index, 1);
+    // If that was this cycle's entry, un-tick it too, so the box reflects reality.
+    if (rec && plant.done && seasonCycleOf(rec.date) === plant.done[key]) {
+      delete plant.done[key];
+    }
+    savePlants(plants);
+    renderRoute();
+  }
+
+  function setNotes(plantId, value) {
+    var plant = findPlant(plantId);
+    plant.notes = value;
+    savePlants(plants);
+  }
+
+  function addPlant(name, category, citrus) {
+    plants.push({ id: uid(), name: name, category: category, citrus: !!citrus, notes: '', notesMigrated: true, feeds: {}, done: {}, events: [], cycleRenumbered: true });
+    savePlants(plants);
+  }
+
+  // Which history entry (if any) is currently expanded into its editable
+  // form. Identified by a composite key so feed entries and free-form
+  // events can share the same tracking var: 'feed:<key>:<idx>' or 'event:<id>'.
+  var editingNote = null;
+  var editingDate = null;
+
+  function entryKey(e) {
+    return e.type === 'event' ? ('event:' + e.id) : ('feed:' + e.key + ':' + e.idx);
+  }
+
+  // A single history entry is a small loss, so its delete button just arms
+  // on first click ("click again to delete") and disarms itself after a
+  // few seconds. Removing a whole tree wipes everything about it, so that
+  // gets the heavier type-the-name confirmation instead (see confirmingRemovePlantId).
+  var confirmingDelete = null;
+  var confirmingDeleteTimer = null;
+  var confirmingRemovePlantId = null;
+
+  function addEvent(plantId) {
+    var plant = findPlant(plantId);
+    if (!plant.events) plant.events = [];
+    var id = uid();
+    plant.events.unshift({ id: id, date: todayISO(), note: '' });
+    savePlants(plants);
+    editingNote = 'event:' + id;
+    renderRoute();
+  }
+
+  function setEventNote(plantId, eventId, value) {
+    var plant = findPlant(plantId);
+    var ev = (plant.events || []).filter(function (e) { return e.id === eventId; })[0];
+    if (ev) {
+      ev.note = value;
+      savePlants(plants);
+    }
+  }
+
+  function setEventDate(plantId, eventId, value) {
+    var plant = findPlant(plantId);
+    var ev = (plant.events || []).filter(function (e) { return e.id === eventId; })[0];
+    if (ev) {
+      ev.date = value;
+      savePlants(plants);
+    }
+  }
+
+  function deleteEvent(plantId, eventId) {
+    var plant = findPlant(plantId);
+    plant.events = (plant.events || []).filter(function (e) { return e.id !== eventId; });
+    savePlants(plants);
+    renderRoute();
+  }
+
+  function removePlant(plantId) {
+    plants = plants.filter(function (p) { return p.id !== plantId; });
+    savePlants(plants);
+  }
+
+  function feedLabel(key) {
+    var def = ALL_FEED_DEFS.filter(function (f) { return f.key === key; })[0];
+    return def ? def.label : key;
+  }
+
+  function fmtDateShort(iso) {
+    return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', year: '2-digit' }).format(new Date(iso + 'T00:00:00'));
+  }
+
+  function cycleTag() {
+    return '’' + String(currentSeasonCycle()).slice(-2);
+  }
+
+  var viewEl = document.getElementById('view');
+
+  function renderRoute() {
+    var hash = location.hash;
+    var m = hash.match(/^#tree\/(.+)$/);
+    if (m && findPlant(m[1])) {
+      renderDetail(m[1]);
+    } else {
+      renderList();
+    }
+  }
+
+  function renderList() {
+    viewEl.innerHTML = '';
+
+    var header = document.createElement('header');
+    header.className = 'masthead';
+    header.innerHTML =
+      '<p class="kicker">Chapter &middot; fertilising</p>' +
+      '<h1>The Feed</h1>' +
+      '<p class="lede">One tick per feed, per tree, per season. Tap the plant\'s name for its full history and notes.</p>';
+    viewEl.appendChild(header);
+
+    var key = document.createElement('div');
+    key.className = 'key';
+    key.innerHTML =
+      '<span class="key-item"><span class="key-swatch todo"></span>Still to do</span>' +
+      '<span class="key-item"><span class="key-swatch autumn"></span>Autumn done</span>' +
+      '<span class="key-item"><span class="key-swatch budswell"></span>Budswell done</span>' +
+      '<span class="key-item"><span class="key-swatch summer"></span>Summer done</span>';
+    viewEl.appendChild(key);
+
+    CATEGORIES.forEach(function (cat) {
+      var group = plants.filter(function (p) { return p.category === cat; });
+      if (!group.length) return;
+
+      var section = document.createElement('div');
+      section.className = 'category';
+      var heading = document.createElement('h2');
+      heading.className = 'category-heading';
+      heading.textContent = cat;
+      section.appendChild(heading);
+
+      var cards = document.createElement('div');
+      cards.className = 'cards';
+
+      group.forEach(function (plant) {
+        var card = document.createElement('div');
+        card.className = 'card';
+
+        var link = document.createElement('button');
+        link.type = 'button';
+        link.className = 'plant-link';
+        link.innerHTML = '<span>' + escapeHtml(plant.name) + '</span><span class="plant-link-arrow">&rarr;</span>';
+        link.addEventListener('click', function () { location.hash = '#tree/' + plant.id; });
+        card.appendChild(link);
+
+        var row = document.createElement('div');
+        row.className = 'feed-row';
+        FEEDS.forEach(function (f) {
+          var done = isDoneThisCycle(plant, f.key);
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'feed-btn ' + f.cls + (done ? ' is-done' : '');
+          btn.innerHTML = '<span class="tick">&#10003;</span><span>' + f.label + ' ' + cycleTag() + '</span>';
+          btn.addEventListener('click', function () { toggleFeed(plant.id, f.key); });
+          row.appendChild(btn);
+        });
+        card.appendChild(row);
+
+        if (plant.citrus) {
+          var extras = document.createElement('div');
+          extras.className = 'extras-row';
+          EXTRAS.forEach(function (ex) {
+            var done = isDoneThisCycle(plant, ex.key);
+            var ebtn = document.createElement('button');
+            ebtn.type = 'button';
+            ebtn.className = 'extra-btn' + (done ? ' is-done' : '');
+            ebtn.textContent = (done ? '✓ ' : '') + ex.label + ' ' + cycleTag();
+            ebtn.addEventListener('click', function () { toggleFeed(plant.id, ex.key); });
+            extras.appendChild(ebtn);
+          });
+          card.appendChild(extras);
+        }
+
+        cards.appendChild(card);
+      });
+
+      section.appendChild(cards);
+      viewEl.appendChild(section);
+    });
+
+    var addSection = document.createElement('section');
+    addSection.className = 'add-plant';
+    addSection.innerHTML =
+      '<h2>Something slipped through the net?</h2>' +
+      '<form class="add-form" id="add-form">' +
+        '<input type="text" id="new-name" placeholder="Plant name" required>' +
+        '<select id="new-category"></select>' +
+        '<label><input type="checkbox" id="new-citrus"> Citrus (adds phosphorus / magnesium)</label>' +
+        '<button type="submit" class="btn-primary">Add</button>' +
+      '</form>';
+    viewEl.appendChild(addSection);
+
+    var catSelect = addSection.querySelector('#new-category');
+    catSelect.innerHTML = CATEGORIES.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+
+    addSection.querySelector('#add-form').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var nameInput = addSection.querySelector('#new-name');
+      var v = nameInput.value.trim();
+      if (!v) return;
+      addPlant(v, catSelect.value, addSection.querySelector('#new-citrus').checked);
+      renderRoute();
+    });
+  }
+
+  function renderDetail(plantId) {
+    var plant = findPlant(plantId);
+    viewEl.innerHTML = '';
+
+    var back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'plant-link';
+    back.innerHTML = '<span class="plant-link-arrow" style="transform:rotate(180deg)">&rarr;</span><span>All trees</span>';
+    back.addEventListener('click', function () { location.hash = ''; });
+    viewEl.appendChild(back);
+
+    var detail = document.createElement('div');
+    detail.className = 'detail';
+
+    var head = document.createElement('div');
+    head.className = 'detail-header';
+
+    var cat = document.createElement('p');
+    cat.className = 'detail-category';
+    cat.textContent = plant.category;
+    head.appendChild(cat);
+
+    var name = document.createElement('h1');
+    name.className = 'detail-name';
+    name.contentEditable = 'true';
+    name.spellcheck = false;
+    name.textContent = plant.name;
+    name.addEventListener('blur', function () {
+      var v = name.textContent.trim();
+      plant.name = v || plant.name;
+      savePlants(plants);
+    });
+    name.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { ev.preventDefault(); name.blur(); }
+    });
+    head.appendChild(name);
+
+    var renameHint = document.createElement('p');
+    renameHint.className = 'rename-hint';
+    renameHint.textContent = 'Tap the name to rename it — Eureka Lemon, Kaffir Lime, whatever you know it as.';
+    head.appendChild(renameHint);
+
+    detail.appendChild(head);
+
+    var notesPanel = document.createElement('div');
+    notesPanel.className = 'panel';
+    notesPanel.innerHTML = '<h2>Notes</h2><p class="panel-hint">How it\'s doing, where it came from, a poem if the mood takes you. Select text and press Ctrl/Cmd+B to bold it.</p>';
+    var notesEl = document.createElement('div');
+    notesEl.className = 'notes-editable';
+    notesEl.contentEditable = 'true';
+    notesEl.setAttribute('data-placeholder', 'Write whatever you like here...');
+    notesEl.innerHTML = plant.notes || '';
+    notesEl.addEventListener('input', function () { setNotes(plant.id, notesEl.innerHTML); });
+    notesEl.addEventListener('keydown', function (ev) {
+      var mod = ev.metaKey || ev.ctrlKey;
+      if (mod && (ev.key === 'b' || ev.key === 'B')) {
+        ev.preventDefault();
+        document.execCommand('bold');
+        setNotes(plant.id, notesEl.innerHTML);
+      }
+    });
+    notesEl.addEventListener('paste', function (ev) {
+      // Pasting rich content (e.g. from Notes app, a webpage) drags along
+      // its own styling — that's the "box inside a box" artefact. Strip it
+      // down to plain text on the way in.
+      ev.preventDefault();
+      var text = (ev.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+    notesPanel.appendChild(notesEl);
+    detail.appendChild(notesPanel);
+
+    var histPanel = document.createElement('div');
+    histPanel.className = 'panel';
+    histPanel.innerHTML = '<h2>History</h2><p class="panel-hint">Every tick from The Feed lands here automatically. Add anything else — transplants, pruning, a repot — with its own entry.</p>';
+
+    var addEventBtn = document.createElement('button');
+    addEventBtn.type = 'button';
+    addEventBtn.className = 'add-event-btn';
+    addEventBtn.textContent = '+ Add event';
+    addEventBtn.addEventListener('click', function () { addEvent(plant.id); });
+    histPanel.appendChild(addEventBtn);
+
+    var entries = [];
+    Object.keys(plant.feeds || {}).forEach(function (key) {
+      plant.feeds[key].forEach(function (rec, idx) {
+        entries.push({ type: 'feed', key: key, idx: idx, date: rec.date, note: rec.note });
+      });
+    });
+    (plant.events || []).forEach(function (ev) {
+      entries.push({ type: 'event', id: ev.id, date: ev.date, note: ev.note });
+    });
+    entries.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+
+    if (!entries.length) {
+      var empty = document.createElement('p');
+      empty.className = 'history-empty';
+      empty.textContent = 'Nothing logged yet — ticks from The Feed will show up here.';
+      histPanel.appendChild(empty);
+    } else {
+      var list = document.createElement('div');
+      list.className = 'history-list';
+      entries.forEach(function (e) {
+        var isEvent = e.type === 'event';
+        var eKey = entryKey(e);
+
+        var row = document.createElement('div');
+        row.className = 'history-row';
+
+        if (editingDate === eKey) {
+          var dateInput = document.createElement('input');
+          dateInput.type = 'date';
+          dateInput.className = 'history-date-input';
+          dateInput.value = e.date;
+          dateInput.addEventListener('blur', function () {
+            if (dateInput.value) {
+              if (isEvent) setEventDate(plant.id, e.id, dateInput.value);
+              else setHistoryDate(plant.id, e.key, e.idx, dateInput.value);
+            }
+            editingDate = null;
+            renderRoute();
+          });
+          row.appendChild(dateInput);
+          setTimeout(function () { dateInput.focus(); }, 0);
+        } else {
+          var dateBtn = document.createElement('button');
+          dateBtn.type = 'button';
+          dateBtn.className = 'history-date';
+          dateBtn.textContent = fmtDateShort(e.date);
+          dateBtn.title = 'Click to change the date';
+          dateBtn.addEventListener('click', function () {
+            editingDate = eKey;
+            renderRoute();
+          });
+          row.appendChild(dateBtn);
+        }
+
+        if (editingNote === eKey) {
+          var labelSpan = document.createElement('span');
+          labelSpan.className = 'history-label' + (isEvent ? ' is-event' : '');
+          labelSpan.textContent = isEvent ? 'Event' : feedLabel(e.key);
+          row.appendChild(labelSpan);
+
+          var noteField = document.createElement('textarea');
+          noteField.className = 'entry-note';
+          noteField.placeholder = isEvent ? 'what happened?' : 'what did you use?';
+          noteField.value = e.note || '';
+          noteField.addEventListener('input', function () {
+            if (isEvent) setEventNote(plant.id, e.id, noteField.value);
+            else setHistoryNote(plant.id, e.key, e.idx, noteField.value);
+          });
+          noteField.addEventListener('blur', function () {
+            editingNote = null;
+            renderRoute();
+          });
+          row.appendChild(noteField);
+          setTimeout(function () { noteField.focus(); }, 0);
+        } else {
+          var body = document.createElement('button');
+          body.type = 'button';
+          body.className = 'history-body';
+
+          var bodyLabel = document.createElement('span');
+          bodyLabel.className = 'history-label' + (isEvent ? ' is-event' : '');
+          bodyLabel.textContent = isEvent ? 'Event' : feedLabel(e.key);
+          body.appendChild(bodyLabel);
+
+          if (e.note) {
+            var noteText = document.createElement('span');
+            noteText.className = 'history-note-text';
+            noteText.textContent = ' — ' + e.note;
+            body.appendChild(noteText);
+          }
+
+          body.addEventListener('click', function () {
+            editingNote = eKey;
+            renderRoute();
+          });
+          row.appendChild(body);
+        }
+
+        var isConfirmingDel = confirmingDelete === eKey;
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'history-del' + (isConfirmingDel ? ' is-confirming' : '');
+        del.textContent = '✕';
+        del.title = isConfirmingDel ? 'Click again to delete' : 'Delete this entry';
+        del.addEventListener('click', function () {
+          if (confirmingDelete === eKey) {
+            clearTimeout(confirmingDeleteTimer);
+            confirmingDelete = null;
+            if (isEvent) deleteEvent(plant.id, e.id);
+            else deleteHistoryEntry(plant.id, e.key, e.idx);
+          } else {
+            confirmingDelete = eKey;
+            clearTimeout(confirmingDeleteTimer);
+            confirmingDeleteTimer = setTimeout(function () {
+              confirmingDelete = null;
+              renderRoute();
+            }, 3000);
+            renderRoute();
+          }
+        });
+        row.appendChild(del);
+
+        list.appendChild(row);
+      });
+      histPanel.appendChild(list);
+    }
+    detail.appendChild(histPanel);
+
+    if (confirmingRemovePlantId === plant.id) {
+      var confirmBox = document.createElement('div');
+      confirmBox.className = 'remove-confirm';
+
+      var warn = document.createElement('p');
+      warn.className = 'remove-confirm-text';
+      warn.innerHTML = 'This removes <strong>' + escapeHtml(plant.name) + '</strong> and all its history and notes for good. Type its name to confirm.';
+      confirmBox.appendChild(warn);
+
+      var confirmRow = document.createElement('div');
+      confirmRow.className = 'remove-confirm-row';
+
+      var confirmInput = document.createElement('input');
+      confirmInput.type = 'text';
+      confirmInput.className = 'remove-confirm-input';
+      confirmInput.placeholder = plant.name;
+      confirmInput.autocomplete = 'off';
+      confirmInput.spellcheck = false;
+      confirmRow.appendChild(confirmInput);
+
+      var confirmBtn = document.createElement('button');
+      confirmBtn.type = 'button';
+      confirmBtn.className = 'btn-danger';
+      confirmBtn.textContent = 'Delete tree';
+      confirmBtn.disabled = true;
+      confirmBtn.addEventListener('click', function () {
+        removePlant(plant.id);
+        confirmingRemovePlantId = null;
+        location.hash = '';
+      });
+      confirmRow.appendChild(confirmBtn);
+
+      confirmInput.addEventListener('input', function () {
+        confirmBtn.disabled = confirmInput.value.trim() !== plant.name;
+      });
+      confirmInput.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' && !confirmBtn.disabled) confirmBtn.click();
+        if (ev.key === 'Escape') { confirmingRemovePlantId = null; renderRoute(); }
+      });
+
+      var cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'remove-plant';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.addEventListener('click', function () {
+        confirmingRemovePlantId = null;
+        renderRoute();
+      });
+      confirmRow.appendChild(cancelBtn);
+
+      confirmBox.appendChild(confirmRow);
+      detail.appendChild(confirmBox);
+      setTimeout(function () { confirmInput.focus(); }, 0);
+    } else {
+      var removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'remove-plant';
+      removeBtn.textContent = 'Remove this tree from The Feed';
+      removeBtn.addEventListener('click', function () {
+        confirmingRemovePlantId = plant.id;
+        renderRoute();
+      });
+      detail.appendChild(removeBtn);
+    }
+
+    viewEl.appendChild(detail);
+  }
+
+  function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  window.addEventListener('hashchange', renderRoute);
+  renderRoute();
+})();
+</script>
+
+</body></html>

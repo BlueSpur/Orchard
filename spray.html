@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Spray</title>
+<style>
+  :root {
+    --surface: #eef2e8;
+    --surface-raised: #ffffff;
+    --surface-sunken: #e4e9dc;
+    --ink: #232a1e;
+    --ink-muted: #5f6a56;
+    --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a;
+    --accent-ink: #3a2508;
+
+    --leaf: #b5622c;
+    --leaf-bg: rgba(181, 98, 44, 0.1);
+    --leaf-ink: #fbf3ee;
+    --winter: #5c7a99;
+    --winter-bg: rgba(92, 122, 153, 0.12);
+    --winter-ink: #eef3f7;
+    --bud: #71923a;
+    --bud-bg: rgba(113, 146, 58, 0.12);
+    --bud-ink: #f5f7f0;
+    --petal: #b96a86;
+    --petal-bg: rgba(185, 106, 134, 0.12);
+    --petal-ink: #fbf1f4;
+    --toolkit: #6b6250;
+    --toolkit-bg: rgba(107, 98, 80, 0.1);
+    --toolkit-ink: #f6f4ef;
+    --warn: #a3402e;
+    --warn-bg: rgba(163, 64, 46, 0.1);
+    --due: #b9552a;
+    --due-bg: rgba(185, 85, 42, 0.14);
+    --due-ink: #fdf1ec;
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #151a12;
+      --surface-raised: #1d2419;
+      --surface-sunken: #10140d;
+      --ink: #e8ebdf;
+      --ink-muted: #9aa48d;
+      --border: rgba(232, 235, 223, 0.14);
+      --accent: #dc9d51;
+      --accent-ink: #2a1a06;
+      --leaf: #d98452; --leaf-bg: rgba(217, 132, 82, 0.16); --leaf-ink: #2a1608;
+      --winter: #8fb3d6; --winter-bg: rgba(143, 179, 214, 0.16); --winter-ink: #142230;
+      --bud: #9bc064; --bud-bg: rgba(155, 192, 100, 0.16); --bud-ink: #16210d;
+      --petal: #d891ab; --petal-bg: rgba(216, 145, 171, 0.16); --petal-ink: #2a1620;
+      --toolkit: #a39a86; --toolkit-bg: rgba(163, 154, 134, 0.14); --toolkit-ink: #211f1a;
+      --warn: #d9846b; --warn-bg: rgba(217, 132, 107, 0.14);
+      --due: #e08e5f; --due-bg: rgba(224, 142, 95, 0.18); --due-ink: #2a1608;
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface: #151a12; --surface-raised: #1d2419; --surface-sunken: #10140d;
+    --ink: #e8ebdf; --ink-muted: #9aa48d; --border: rgba(232, 235, 223, 0.14);
+    --accent: #dc9d51; --accent-ink: #2a1a06;
+    --leaf: #d98452; --leaf-bg: rgba(217, 132, 82, 0.16); --leaf-ink: #2a1608;
+    --winter: #8fb3d6; --winter-bg: rgba(143, 179, 214, 0.16); --winter-ink: #142230;
+    --bud: #9bc064; --bud-bg: rgba(155, 192, 100, 0.16); --bud-ink: #16210d;
+    --petal: #d891ab; --petal-bg: rgba(216, 145, 171, 0.16); --petal-ink: #2a1620;
+    --toolkit: #a39a86; --toolkit-bg: rgba(163, 154, 134, 0.14); --toolkit-ink: #211f1a;
+    --warn: #d9846b; --warn-bg: rgba(217, 132, 107, 0.14);
+    --due: #e08e5f; --due-bg: rgba(224, 142, 95, 0.18); --due-ink: #2a1608;
+  }
+  :root[data-theme="light"] {
+    --surface: #eef2e8; --surface-raised: #ffffff; --surface-sunken: #e4e9dc;
+    --ink: #232a1e; --ink-muted: #5f6a56; --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a; --accent-ink: #3a2508;
+    --leaf: #b5622c; --leaf-bg: rgba(181, 98, 44, 0.1); --leaf-ink: #fbf3ee;
+    --winter: #5c7a99; --winter-bg: rgba(92, 122, 153, 0.12); --winter-ink: #eef3f7;
+    --bud: #71923a; --bud-bg: rgba(113, 146, 58, 0.12); --bud-ink: #f5f7f0;
+    --petal: #b96a86; --petal-bg: rgba(185, 106, 134, 0.12); --petal-ink: #fbf1f4;
+    --toolkit: #6b6250; --toolkit-bg: rgba(107, 98, 80, 0.1); --toolkit-ink: #f6f4ef;
+    --warn: #a3402e; --warn-bg: rgba(163, 64, 46, 0.1);
+    --due: #b9552a; --due-bg: rgba(185, 85, 42, 0.14); --due-ink: #fdf1ec;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 46rem; margin: 0 auto; padding: 2.25rem 1.25rem 5rem; display: flex; flex-direction: column; gap: 2.25rem; }
+
+  .shelf-nav { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em; color: var(--ink-muted); display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .shelf-nav a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 2px; }
+  .shelf-nav a:hover { color: var(--accent); }
+  .shelf-nav .current { color: var(--ink); }
+
+  .masthead { display: flex; flex-direction: column; gap: 0.6rem; }
+  .kicker { margin: 0; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(2.1rem, 5vw, 2.8rem); text-wrap: balance; letter-spacing: -0.01em; }
+  .lede { margin: 0; max-width: 36rem; color: var(--ink-muted); font-size: 1rem; }
+
+  .key { display: flex; flex-wrap: wrap; gap: 0.9rem; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.8rem 1rem; font-size: 0.78rem; color: var(--ink-muted); }
+  .key-item { display: flex; align-items: center; gap: 0.4rem; }
+  .key-swatch { width: 0.75rem; height: 0.75rem; border-radius: 0.25rem; flex-shrink: 0; }
+  .key-swatch.leaf { background: var(--leaf); }
+  .key-swatch.winter { background: var(--winter); }
+  .key-swatch.bud { background: var(--bud); }
+  .key-swatch.petal { background: var(--petal); }
+  .key-swatch.toolkit { background: var(--toolkit); }
+  .key-swatch.due { background: var(--due); }
+
+  .category { display: flex; flex-direction: column; gap: 0.75rem; }
+  .category-heading { margin: 0; font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; }
+  .cards { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .card { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.85rem 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .plant-link {
+    font-family: var(--font-display); font-size: 1.05rem; font-weight: 600;
+    background: none; border: none; color: var(--ink); text-align: left; padding: 0;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .plant-link:hover { color: var(--accent); }
+  .plant-link:hover .plant-link-arrow { transform: translateX(2px); }
+  .plant-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 0.2rem; }
+  .plant-link-arrow { font-size: 0.85rem; color: var(--ink-muted); transition: transform 0.12s ease; }
+  @media (prefers-reduced-motion: reduce) { .plant-link-arrow { transition: none; } }
+
+  .spray-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+  button.spray-btn {
+    font-family: var(--font-body); font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0.75rem; border-radius: 0.5rem;
+    cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem;
+    background: var(--surface-sunken); color: var(--ink-muted); border: 1px solid var(--border);
+    transition: transform 0.1s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    text-align: left;
+  }
+  @media (prefers-reduced-motion: reduce) { button.spray-btn { transition: none; } }
+  button.spray-btn:hover { transform: translateY(-1px); }
+  button.spray-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .spray-btn-title { display: flex; align-items: center; gap: 0.4rem; }
+  .spray-btn-icon {
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 1.3rem; height: 1.3rem; border-radius: 50%;
+  }
+  .spray-btn-icon svg { width: 0.78em; height: 0.78em; }
+  .spray-btn-icon.leaf { background: var(--leaf-bg); color: var(--leaf); }
+  .spray-btn-icon.winter { background: var(--winter-bg); color: var(--winter); }
+  .spray-btn-icon.bud { background: var(--bud-bg); color: var(--bud); }
+  .spray-btn-icon.petal { background: var(--petal-bg); color: var(--petal); }
+  .spray-btn-icon.toolkit { background: var(--toolkit-bg); color: var(--toolkit); }
+  .spray-btn-prefix { font-size: 0.7rem; font-weight: 700; opacity: 0.75; }
+  .spray-btn-title .hash { opacity: 0.5; margin: 0 0.02em; }
+  .spray-btn-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.8; }
+
+  .spray-btn.leaf.is-done { background: var(--leaf); color: var(--leaf-ink); border-color: transparent; }
+  .spray-btn.winter.is-done { background: var(--winter); color: var(--winter-ink); border-color: transparent; }
+  .spray-btn.bud.is-done { background: var(--bud); color: var(--bud-ink); border-color: transparent; }
+  .spray-btn.petal.is-done { background: var(--petal); color: var(--petal-ink); border-color: transparent; }
+  .spray-btn.toolkit.is-done { background: var(--toolkit); color: var(--toolkit-ink); border-color: transparent; }
+  .spray-btn.is-followup-due { background: var(--due); color: var(--due-ink); border-color: transparent; }
+
+  .plant-note { font-size: 0.82rem; color: var(--ink-muted); font-style: italic; }
+  .plant-warn { font-size: 0.82rem; color: var(--warn); background: var(--warn-bg); border-radius: 0.4rem; padding: 0.5rem 0.65rem; font-weight: 600; }
+
+  /* disease notes — same tap-to-open plate + editable-box pattern as
+     The Almanac's Chapters, so one disease's notes live in one place
+     instead of being repeated under every plant that shares it. */
+  .plates { display: flex; flex-direction: column; gap: 0.6rem; }
+  .plate { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 0.6rem; overflow: hidden; }
+  .plate-head {
+    width: 100%; display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 0.95rem;
+    background: none; border: none; text-align: left; cursor: pointer; color: var(--ink); font-family: var(--font-body);
+  }
+  .plate-head:hover { background: var(--surface-sunken); }
+  .plate-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .plate-icon {
+    flex-shrink: 0; width: 2.2rem; height: 2.2rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .plate-icon svg { width: 1.15rem; height: 1.15rem; }
+  .plate.leaf .plate-icon { background: var(--leaf-bg); color: var(--leaf); }
+  .plate.winter .plate-icon { background: var(--winter-bg); color: var(--winter); }
+  .plate.bud .plate-icon { background: var(--bud-bg); color: var(--bud); }
+  .plate.petal .plate-icon { background: var(--petal-bg); color: var(--petal); }
+  .plate.toolkit .plate-icon { background: var(--toolkit-bg); color: var(--toolkit); }
+  .plate-title { font-family: var(--font-display); font-size: 1.02rem; font-weight: 600; flex: 1; }
+  .plate-chevron { flex-shrink: 0; color: var(--ink-muted); transition: transform 0.15s ease; }
+  @media (prefers-reduced-motion: reduce) { .plate-chevron { transition: none; } }
+  .plate.is-open .plate-chevron { transform: rotate(180deg); }
+  .plate-body { display: none; padding: 0 0.95rem 1rem; }
+  .plate.is-open .plate-body { display: block; }
+  .plate-body-inner { padding-left: calc(2.2rem + 0.8rem); }
+  .chapter-editable {
+    width: 100%; min-height: 4rem; max-height: 40vh; overflow-y: auto; resize: vertical;
+    font-family: var(--font-body); font-size: 0.88rem; line-height: 1.55;
+    padding: 0.6rem 0.7rem; border: 1px solid var(--border); border-radius: 0.5rem;
+    background: var(--surface); color: var(--ink); white-space: pre-wrap;
+  }
+  .chapter-editable:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chapter-editable:empty::before { content: attr(data-placeholder); color: var(--ink-muted); opacity: 0.8; }
+
+  footer { color: var(--ink-muted); font-size: 0.8rem; text-align: center; max-width: 32rem; margin: 0 auto; }
+
+  /* detail / history view — mirrors The Feed */
+  .detail { display: flex; flex-direction: column; gap: 2rem; }
+  .detail-header { display: flex; flex-direction: column; gap: 0.4rem; }
+  .detail-category { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  .detail-name {
+    font-family: var(--font-display); font-size: clamp(1.8rem, 5vw, 2.4rem); font-weight: 600;
+    outline: none; border-radius: 0.3rem; padding: 0.05rem 0.2rem; margin: -0.05rem -0.2rem;
+  }
+  .detail-name:hover { background: var(--surface-sunken); cursor: text; }
+  .detail-name:focus-visible { box-shadow: 0 0 0 2px var(--accent); background: var(--surface-sunken); }
+  .rename-hint { margin: 0; font-size: 0.78rem; color: var(--ink-muted); }
+
+  .panel { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 0.6rem; padding: 1.1rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .panel h2 { margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+  .panel-hint { margin: 0; font-size: 0.8rem; color: var(--ink-muted); }
+
+  .add-event-btn {
+    align-self: flex-start; font-family: var(--font-body); font-size: 0.8rem; font-weight: 600;
+    padding: 0.35rem 0.75rem; border-radius: 0.4rem; border: 1px dashed var(--border);
+    background: none; color: var(--ink-muted); cursor: pointer;
+  }
+  .add-event-btn:hover { color: var(--ink); border-color: var(--ink-muted); }
+  .add-event-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .history-list { display: flex; flex-direction: column; gap: 0; }
+  .history-empty { font-size: 0.85rem; color: var(--ink-muted); font-style: italic; }
+
+  .history-row {
+    position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem;
+    padding: 0.4rem 1.6rem 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.86rem;
+  }
+  .history-row:last-child { border-bottom: none; }
+
+  button.history-date {
+    font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: inherit; color: var(--ink-muted);
+    background: none; border: none; padding: 0; margin: 0; cursor: pointer; flex-shrink: 0;
+  }
+  button.history-date:hover { color: var(--accent); }
+  button.history-date:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .history-date-input {
+    font-family: var(--font-mono); font-size: 0.82rem; padding: 0.1rem 0.3rem; border: 1px solid var(--border);
+    border-radius: 0.3rem; background: var(--surface); color: var(--ink); flex-shrink: 0;
+  }
+
+  .history-label { font-weight: 600; flex-shrink: 0; }
+  .history-label.is-event { color: var(--accent); }
+
+  button.history-body {
+    font: inherit; background: none; border: none; padding: 0; margin: 0; text-align: left; cursor: pointer;
+    color: inherit; flex: 1 1 auto; min-width: 3rem;
+  }
+  button.history-body:hover .history-label, button.history-body:hover .history-note-text { color: var(--accent); }
+  button.history-body:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .history-note-text { color: var(--ink); }
+
+  .entry-note {
+    width: 100%; min-height: 2.6rem; resize: vertical; font-family: var(--font-body); font-size: 0.86rem;
+    line-height: 1.5; padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 0.4rem;
+    background: var(--surface); color: var(--ink); margin-top: 0.2rem;
+  }
+  .entry-note::placeholder { color: var(--ink-muted); opacity: 0.7; }
+  .entry-note:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .history-del {
+    position: absolute; top: 0.4rem; right: 0; background: none; border: none; color: var(--ink-muted);
+    font-family: var(--font-mono); cursor: pointer; opacity: 0; transition: opacity 0.12s ease;
+  }
+  .history-row:hover .history-del, .history-del:focus-visible { opacity: 1; }
+  .history-del:hover { color: var(--autumn, var(--warn)); }
+  .history-del:focus-visible { outline: 2px solid var(--accent); }
+  .history-del.is-confirming { opacity: 1; color: var(--warn-ink, var(--ink)); background: var(--warn-bg); border-radius: 999px; padding: 0 0.25rem; }
+</style>
+
+<div class="page">
+  <nav class="shelf-nav" id="shelf-nav">
+    <a href="almanac.html">The Almanac</a>
+    <span>&middot;</span>
+    <a href="feed.html">The Feed</a>
+    <span>&middot;</span>
+    <span class="current">The Spray</span>
+  </nav>
+
+  <div id="view"></div>
+
+  <footer>Saved in this browser only, for now. Plant list is a snapshot from The Feed — add or remove trees over there and copy the change across here by hand.</footer>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = 'orchard-spray-v2';
+  var NAMES_KEY = 'orchard-spray-names-v1';
+  var HISTORY_KEY = 'orchard-spray-history-v1';
+  var MIGRATION_KEY = 'orchard-spray-v1-single-cycle-migrated';
+
+  // Small line-icon set, same stroke-based style as The Almanac's plates —
+  // leaf/bud/petal are the identical paths used there, so the same season
+  // reads the same way across the whole shelf. Winter (snowflake) and Watch
+  // (eye) are new here since Almanac's front matter doesn't cover them.
+  // Fungicide (mushroom) and Insect (the ladybug from Almanac's Pests
+  // chapter icon) are the two reactive "catch-all" buttons.
+  var ICONS = {
+    leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-4.5 1-7 5-6 10 1 4.5 5 7 9 6 3-.8 4.5-3.5 4-7-.6-4-3.5-8-7-9z"/><path d="M9 19c1-4 2-9 7-13"/><path d="M4 21c2.5-1 4-2.5 5-4"/></svg>',
+    winter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5v19M3.9 7.25l16.2 9.5M20.1 7.25L3.9 16.75"/><path d="M12 6.5l-2 1.5M12 6.5l2 1.5M12 17.5l-2-1.5M12 17.5l2-1.5"/><path d="M7 9.4l-.6 2.3-2.3.2M7 14.6l-.6-2.3-2.3-.2"/><path d="M17 9.4l.6 2.3 2.3.2M17 14.6l.6-2.3 2.3-.2"/></svg>',
+    bud: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="M8 21c3-1 4-1 8 0"/><path d="M12 9c-2.8 0-4.6-1.8-4.6-4.6C7.4 3 8 3 9.5 3.6 11 4.2 12 5.6 12 9z"/><path d="M12 9c2.8 0 4.6-1.8 4.6-4.6C16.6 3 16 3 14.5 3.6 13 4.2 12 5.6 12 9z"/></svg>',
+    petal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10.5" r="1.4" fill="currentColor" stroke="none"/><path d="M12 9.2C11 6.8 9.6 5.6 12 3.4c2.4 2.2 1 3.4 0 5.8z"/><path d="M13.3 11c2.6-.4 4.3.4 6.7-1.6-1.7-2.7-3.2-1.8-6.7 1.6z"/><path d="M10.7 11c-2.6-.4-4.3.4-6.7-1.6 1.7-2.7 3.2-1.8 6.7 1.6z"/><path d="M12.8 11.7c1.2 2.4.8 4.2 3.6 5.9-2.3 2.4-3.4.7-3.6-5.9z"/><path d="M17.5 15.5c1.8 1.7 1.6 3.6 4.5 4-.3-3.2-1.7-3.7-4.5-4z"/></svg>',
+    watch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+    fungicide: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11c0-4.4 3.6-7 8-7s8 2.6 8 7c0 .8-.9 1.3-1.6.9-1.7-1-4-1.6-6.4-1.6s-4.7.6-6.4 1.6C4.9 12.3 4 11.8 4 11z"/><path d="M9 12v5a3 3 0 0 0 6 0v-5"/></svg>',
+    insect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="13" rx="4" ry="6"/><path d="M12 7V4M9 5l1.5 2M15 5l-1.5 2"/><path d="M8 10L4 8M8 14L3.5 14M8 18l-3.5 2.5"/><path d="M16 10l4-2M16 14l4.5 0M16 18l3.5 2.5"/></svg>'
+  };
+  function iconSvg(key, clsName) {
+    return '<span class="spray-btn-icon ' + clsName + '">' + (ICONS[key] || '') + '</span>';
+  }
+
+  var TIME_DEFS = {
+    leaffall: { label: 'Leaf fall', anchorMonth: 3, cls: 'leaf', icon: 'leaf' },
+    winter:   { label: 'Winter',    anchorMonth: 5, cls: 'winter', icon: 'winter' },
+    budswell: { label: 'Budswell',  anchorMonth: 7, cls: 'bud', icon: 'bud' },
+    petalfall:{ label: 'Petal fall',anchorMonth: 9, cls: 'petal', icon: 'petal' },
+    reactive: { label: 'Watch',     anchorMonth: 8, cls: 'toolkit', icon: 'watch' }
+  };
+
+  // Two reactive "catch-all" sprays live on every plant now, so any
+  // off-schedule treatment gets logged somewhere — the point is spotting
+  // overspraying, not prescribing a product. Every click logs a new dated
+  // entry (never toggles off), same mechanism as the interval sprays below.
+  function pestCatchall() {
+    return { time: 'reactive', key: 'pest', label: 'Insect & pest (reactive)', catchall: true, catchKind: 'insect' };
+  }
+  function fungicideCatchall() {
+    return { time: 'reactive', key: 'fungicide', label: 'Fungicide (reactive)', catchall: true, catchKind: 'fungicide' };
+  }
+
+  // category -> list of plants. Each spray: a time window + a list of
+  // products that actually fit that window (rotate between them for
+  // resistance management — don't lean on one product every time), shown
+  // right on the button separated by a vertical hash. Bordeaux and lime
+  // sulphur are dormant/leafless-only — phytotoxic on soft green growth —
+  // so they only appear on leafless windows (leaf fall, winter, and
+  // budswell before green tip). Copper oxychloride, mancozeb and
+  // chlorothalonil are the in-leaf-safe rotation set (petal fall onward).
+  // `interval` marks a treatment that repeats on a schedule rather than
+  // ticking once per season — see logIntervalSpray().
+  var CATEGORIES = [
+    {
+      name: 'Stone fruit',
+      plants: [
+        { name: 'Plum #1', sprays: [
+          {time:'leaffall', key:'canker', label:'Canker spray', disease:'Canker', prefix:'50%', products:['Bordeaux']},
+          {time:'budswell', key:'canker-top', label:'Canker top-up', disease:'Canker', products:['Bordeaux','Lime sulphur']},
+          {time:'budswell', key:'neem-budswell', label:'Budswell Neem', disease:'Aphid', products:['Neem']},
+          pestCatchall(), fungicideCatchall()
+        ]},
+        { name: 'Plum #2', sprays: [
+          {time:'leaffall', key:'canker', label:'Canker spray', disease:'Canker', prefix:'50%', products:['Bordeaux']},
+          {time:'budswell', key:'canker-top', label:'Canker top-up', disease:'Canker', products:['Bordeaux','Lime sulphur']},
+          {time:'budswell', key:'neem-budswell', label:'Budswell Neem', disease:'Aphid', products:['Neem']},
+          pestCatchall(), fungicideCatchall()
+        ]},
+        { name: 'White peach', sprays: [
+          {time:'leaffall', key:'canker', label:'Canker spray', disease:'Canker', prefix:'50%', products:['Bordeaux']},
+          {time:'budswell', key:'canker-top', label:'Canker top-up', disease:'Canker', products:['Bordeaux','Lime sulphur']},
+          pestCatchall(), fungicideCatchall()
+        ]},
+        { name: 'Dwarf yellow peach', sprays: [
+          {time:'leaffall', key:'canker', label:'Canker spray', disease:'Canker', prefix:'50%', products:['Bordeaux']},
+          {time:'budswell', key:'canker-top', label:'Canker top-up', disease:'Canker', products:['Bordeaux','Lime sulphur']},
+          pestCatchall(), fungicideCatchall()
+        ]},
+        { name: 'Cherry #1', sprays: [
+          {time:'leaffall', key:'canker', label:'Canker spray', disease:'Canker', prefix:'50%', products:['Bordeaux']},
+          {time:'budswell', key:'canker-top', label:'Canker top-up', disease:'Canker', products:['Bordeaux','Lime sulphur']},
+          {time:'petalfall', key:'brownrot', label:'Brown rot spray', disease:'Brown rot', products:['Chlortan','Copper','Mancozeb'], interval:{days:42, label:'repeat if wet weather continues'}},
+          pestCatchall(), fungicideCatchall()
+        ] },
+        { name: 'Cherry #2', sprays: [
+          {time:'leaffall', key:'canker', label:'Canker spray', disease:'Canker', prefix:'50%', products:['Bordeaux']},
+          {time:'budswell', key:'canker-top', label:'Canker top-up', disease:'Canker', products:['Bordeaux','Lime sulphur']},
+          {time:'petalfall', key:'brownrot', label:'Brown rot spray', disease:'Brown rot', products:['Chlortan','Copper','Mancozeb'], interval:{days:42, label:'repeat if wet weather continues'}},
+          pestCatchall(), fungicideCatchall()
+        ] }
+      ]
+    },
+    {
+      name: 'Pome',
+      plants: [
+        { name: 'Pear', sprays: [
+          {time:'budswell', key:'scab', label:'Scab spray', disease:'Scab', products:['Copper','Lime sulphur']},
+          {time:'petalfall', key:'scab-bloom', label:'Scab follow-up', disease:'Scab', products:['Copper','Mancozeb','Chlortan']},
+          pestCatchall(), fungicideCatchall()
+        ], note: 'Pear & cherry slug shows up here too — hose off, or log it under Insect & pest, not Fungicide.' },
+        { name: 'Dwarf apple #1', sprays: [
+          {time:'budswell', key:'scab', label:'Scab spray', disease:'Scab', products:['Copper','Lime sulphur']},
+          {time:'petalfall', key:'scab-bloom', label:'Scab follow-up', disease:'Scab', products:['Copper','Mancozeb','Chlortan']},
+          pestCatchall(), fungicideCatchall()
+        ]},
+        { name: 'Dwarf apple #2', sprays: [
+          {time:'budswell', key:'scab', label:'Scab spray', disease:'Scab', products:['Copper','Lime sulphur']},
+          {time:'petalfall', key:'scab-bloom', label:'Scab follow-up', disease:'Scab', products:['Copper','Mancozeb','Chlortan']},
+          pestCatchall(), fungicideCatchall()
+        ]}
+      ]
+    },
+    {
+      name: 'Citrus',
+      plants: [
+        { name: 'Lemon #1', sprays: [
+          {time:'petalfall', key:'melanose', label:'Melanose & scab spray', disease:'Melanose', products:['Copper','Mancozeb','Chlortan'], interval:{days:42, label:'follow-up if still wet, or on an older tree with a lot of dead wood'}},
+          {time:'winter', key:'greasy1', label:'Greasy spot spray', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'greasy2', label:'Greasy spot follow-up', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'miteoil', label:'Mite prevention', disease:'Mite', products:['Hort. oil']},
+          {time:'petalfall', key:'brownrot', label:'Brown rot spray', disease:'Brown rot', products:['Copper'], interval:{days:42, label:'repeat if wet weather continues'}},
+          pestCatchall(), fungicideCatchall()
+        ] },
+        { name: 'Lemon #2', sprays: [
+          {time:'petalfall', key:'melanose', label:'Melanose & scab spray', disease:'Melanose', products:['Copper','Mancozeb','Chlortan'], interval:{days:42, label:'follow-up if still wet, or on an older tree with a lot of dead wood'}},
+          {time:'winter', key:'greasy1', label:'Greasy spot spray', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'greasy2', label:'Greasy spot follow-up', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'miteoil', label:'Mite prevention', disease:'Mite', products:['Hort. oil']},
+          {time:'petalfall', key:'brownrot', label:'Brown rot spray', disease:'Brown rot', products:['Copper'], interval:{days:42, label:'repeat if wet weather continues'}},
+          pestCatchall(), fungicideCatchall()
+        ] },
+        { name: 'Lime #1', sprays: [
+          {time:'winter', key:'greasy1', label:'Greasy spot spray', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'greasy2', label:'Greasy spot follow-up', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'miteoil', label:'Mite prevention', disease:'Mite', products:['Hort. oil']},
+          {time:'petalfall', key:'brownrot', label:'Brown rot spray', disease:'Brown rot', products:['Copper'], interval:{days:42, label:'repeat if wet weather continues'}},
+          pestCatchall(), fungicideCatchall()
+        ] },
+        { name: 'Lime #2', sprays: [
+          {time:'winter', key:'greasy1', label:'Greasy spot spray', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'greasy2', label:'Greasy spot follow-up', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'miteoil', label:'Mite prevention', disease:'Mite', products:['Hort. oil']},
+          {time:'petalfall', key:'brownrot', label:'Brown rot spray', disease:'Brown rot', products:['Copper'], interval:{days:42, label:'repeat if wet weather continues'}},
+          pestCatchall(), fungicideCatchall()
+        ] }
+      ]
+    },
+    {
+      name: 'Berries & cane',
+      plants: [
+        { name: 'Blueberries (×5)', sprays: [
+          {time:'leaffall', key:'copper', label:'Leaf fall spray', disease:'Stem blight', products:['Copper','Mancozeb']},
+          {time:'budswell', key:'copper2', label:'Budswell spray', disease:'Stem blight', products:['Copper','Mancozeb']},
+          pestCatchall(), fungicideCatchall()
+        ], note: 'No lime sulphur — damages the leaves.' },
+        { name: 'Blackberry', sprays: [
+          {time:'winter', key:'lime-sulphur', label:'Dormant spray', disease:'Fungal', products:['Lime sulphur']},
+          {time:'budswell', key:'copper', label:'Budswell spray', disease:'Fungal', products:['Copper','Mancozeb']},
+          {time:'petalfall', key:'copper2', label:'Petal fall spray', disease:'Fungal', products:['Copper','Mancozeb','Chlortan']},
+          pestCatchall(), fungicideCatchall()
+        ]},
+        { name: 'Raspberries', sprays: [
+          {time:'winter', key:'lime-sulphur', label:'Dormant spray', disease:'Fungal', products:['Lime sulphur']},
+          {time:'budswell', key:'copper', label:'Budswell spray', disease:'Fungal', products:['Copper','Mancozeb']},
+          {time:'petalfall', key:'copper2', label:'Petal fall spray', disease:'Fungal', products:['Copper','Mancozeb','Chlortan']},
+          pestCatchall(), fungicideCatchall()
+        ]},
+        { name: 'Strawberry patch', sprays: [ pestCatchall(), fungicideCatchall() ], warn: 'No copper, ever — near-guaranteed leaf damage on strawberries. If you do spray reactively, note what you used.' },
+        { name: 'Gooseberry (the unhappy one)', sprays: [
+          {time:'winter', key:'lime-sulphur', label:'Dormant spray', disease:'Mildew', products:['Lime sulphur']},
+          {time:'budswell', key:'prebloom', label:'Pre-bloom spray', disease:'Mildew', products:['Sulfur','Copper','Mancozeb']},
+          pestCatchall(), fungicideCatchall()
+        ] }
+      ]
+    },
+    {
+      name: 'Other',
+      plants: [
+        { name: 'Feijoa #1', sprays: [ pestCatchall(), fungicideCatchall() ] },
+        { name: 'Feijoa #2', sprays: [ pestCatchall(), fungicideCatchall() ] },
+        { name: 'Passionfruit', sprays: [
+          {time:'budswell', key:'brownspot', label:'Brown/Septoria spot spray', disease:'Septoria spot', products:['Copper','Mancozeb','Chlortan']},
+          pestCatchall(), fungicideCatchall()
+        ],
+        note: 'Collar rot & Fusarium wilt aren’t spray problems — prevention is grafted, Phytophthora-resistant (yellow/golden) rootstock with the graft 30cm+ above soil, good drainage, and mulch kept clear of the stem.',
+        warn: 'If a vine looks wrinkled/crinkled with yellow mottling and small hard-rinded fruit, that’s likely Woodiness virus, not a spray-fixable problem — remove the vine so aphids can’t keep spreading it.' }
+      ]
+    }
+  ];
+
+  var SPRAY_LOOKUP = {};
+  CATEGORIES.forEach(function (cat) {
+    cat.plants.forEach(function (plant) {
+      (plant.sprays || []).forEach(function (s) {
+        var id = plant.name + '::' + s.time + '::' + s.key;
+        SPRAY_LOOKUP[id] = { label: s.label, plantName: plant.name };
+      });
+    });
+  });
+  function sprayLabel(id) {
+    var def = SPRAY_LOOKUP[id];
+    return def ? def.label : 'Spray';
+  }
+
+  // Notes by disease, not by plant — so the explanation for e.g. brown rot
+  // lives in one place instead of being copy-pasted under every plant that
+  // gets a brown rot button. Free text, same editable-box pattern as The
+  // Almanac's Chapters; seeded with a starting draft, editable from there.
+  var DISEASE_NOTES_KEY = 'orchard-spray-disease-notes-v1';
+  var DISEASE_NOTES = [
+    { key: 'canker', title: 'Bacterial canker', icon: 'leaf',
+      seed: 'Stone fruit — plums, peaches, cherries. A bacterial infection that gets in through wounds: pruning cuts, frost cracks, and especially the scars left when leaves drop in autumn. Untreated it can girdle branches and kill limbs, or whole young trees, over a few seasons — slow, but genuinely destructive, and there’s no cure once it’s established in the wood. Prevention only. Spray Bordeaux at about 50% leaf fall, not full drop — the point is to protect the fresh leaf scars before bacteria can colonise them, so timing matters more than the product itself. The budswell top-up (Bordeaux or lime sulphur) covers the second main wound-entry window as growth resumes. Avoid pruning in wet weather, and wipe down tools between trees if you’re cutting out an infected branch.' },
+    { key: 'scab', title: 'Scab', icon: 'bud',
+      seed: 'Apples & pears. A fungus that overwinters in fallen leaf litter and infects new leaves and fruit in spring, causing dark scabby lesions. Mostly cosmetic on the fruit — still edible, just ugly — but a heavy infection can reduce fruit size and cause premature leaf drop, weakening the tree over a season. Budswell spray (copper or lime sulphur) is the main preventative, then a petal-fall follow-up (copper, mancozeb, or chlorothalonil) covers the window while blossom and new leaves are most vulnerable. Raking up and binning fallen leaves in autumn (rather than composting on-site) cuts down next year’s spore load.' },
+    { key: 'brownrot', title: 'Brown rot', icon: 'petal',
+      seed: 'Stone fruit (cherries especially) and citrus. One of the more serious ones here — it can blight blossom outright, killing the flower before it ever sets fruit, and then rot ripening fruit on the tree, sometimes fast, especially after rain. Risk climbs sharply once it turns wet around petal fall and stays elevated right through into summer as fruit ripens — that’s a window to keep watching, not a single spray to forget about. On citrus specifically: spray skirts & lower canopy, since that’s where fruit sits closest to soil-borne spores, and keep fallen fruit off the ground — it acts as a reservoir that keeps reinfecting the tree. Chlorothalonil, copper, or mancozeb, repeated if wet weather continues.' },
+    { key: 'melanose', title: 'Melanose & greasy spot', icon: 'petal',
+      seed: 'Citrus. Two different fungal issues, grouped here because they get the same spray rotation. Melanose causes pitted, scabby rind blemishes — mostly cosmetic, affects how the fruit looks rather than how it eats — plus dieback on dead wood, which is why it’s worse on older trees carrying a lot of deadwood in the canopy. Greasy spot causes yellow-then-brown greasy-looking blotches on leaves, and can trigger premature leaf drop if it’s severe enough, which weakens the tree over time. Both are mainly a lemon problem here — the lime-susceptibility evidence I found was specific to Rangpur lime (a rootstock/hybrid), not limes generally, so there’s no button on the limes. Copper/mancozeb/chlorothalonil rotation, timed to petal fall for melanose and winter/budswell for greasy spot.' },
+    { key: 'mildew', title: 'Mildew', icon: 'watch',
+      seed: 'Gooseberry. Powdery mildew is the classic gooseberry problem — not the canker/scab issues the rest of the orchard deals with. A white-grey powdery coating on leaves, shoots and fruit that stunts growth and can make fruit unusable if it takes hold early in the season. It overwinters on the plant itself and infects new growth as it emerges in spring, which is why the dormant-season spray matters as much as the in-season one. Lime sulphur through winter, then sulfur or copper before bloom. Don’t spray sulfur within 2 weeks of an oil spray — the combination can burn foliage.' },
+    { key: 'leafspot', title: 'Leaf spot', icon: 'fungicide',
+      seed: 'Feijoa. A minor, mostly cosmetic fungal spotting on the leaves — feijoas are fairly untroubled generally, so this isn’t a routine preventative spray, just something to watch for and treat with copper if it actually shows up. Log it under Fungicide when you do, rather than spraying on a schedule against something that mostly doesn’t happen.' },
+    { key: 'woodiness', title: 'Passionfruit Woodiness virus', icon: 'insect',
+      seed: 'No cure once a vine has it, and it’s very likely what’s been killing yours repeatedly. Aphids are the vector — they pick the virus up feeding on an infected vine and carry it to healthy ones. Symptoms: wrinkled/crinkled, mottled yellow leaves and small, hard-rinded, misshapen fruit. Once a vine shows it, remove it — nothing reverses the infection, and leaving it just gives aphids a longer-lived source to keep spreading from. Keeping the Insect & pest spray current on the passionfruit specifically (Neem, every few weeks through the growing season) is the actual prevention here — not a fungicide, since this isn’t a fungal problem at all.' },
+    { key: 'spidermite', title: 'Citrus spider mite', icon: 'watch',
+      seed: 'Citrus. Not an insect — a tiny relative of spiders — that feeds on leaves and causes a fine stippled, bronzed look, with visible webbing in bad cases. A light case is mostly cosmetic; a heavy, sustained infestation weakens the tree and knocks fruit quality. In Victoria, outbreaks tend to spike in late spring and again in mid-summer as it warms up and dries out. Preventative: horticultural/winter oil sprayed before spring growth starts (roughly budswell timing) smothers overwintering mites before they can build up — that’s the new button on the citrus. Reactive: a strong jet of water from the hose, aimed at the underside of leaves, physically knocks mites off and genuinely works for a light infestation — worth trying before reaching for a spray. If it’s bad, repeat oil or a miticide every 3–4 weeks, since eggs, juveniles and adults are all present at once and one spray rarely finishes the job.' },
+    { key: 'gallwasp', title: 'Citrus gall wasp', icon: 'insect',
+      seed: 'Citrus. Endemic across Melbourne backyards since it arrived in the 1990s, with no natural predator here to keep it in check — genuinely common, so galls on the lime aren’t a sign anything’s been done wrong. Severity is a spectrum: a light case is mostly cosmetic (odd woody lumps on the stems), but a heavy, sustained infestation reduces fruit production and stunts growth over successive years, as more of the tree’s wood gets taken over by galls instead of fruiting growth. Two separate actions, at different times of year, and neither is a spray: (1) prune out galls between April and June (autumn/early winter) — pruning later, in winter or spring, tends to trigger a flush of soft new growth, which is exactly what attracts more wasps, so timing the cut matters as much as making it; (2) hang yellow sticky traps from mid-August to catch emerging adult wasps before they lay eggs in new spring growth, and take the traps down by end of November since the wasps are gone by then and the traps are non-selective — they’ll catch bees, butterflies, and occasionally small birds too, a real tradeoff rather than a free win. There’s also a kaolin clay spray (applied late August, washes off in rain, needs reapplying) as another option — I haven’t added it as its own button since traps + winter pruning are the more standard approach, but say the word if you’d rather track it here too. One more thing worth knowing: the standard advice is to shift fertilising and hard pruning to late summer/autumn rather than late winter/spring specifically to avoid encouraging the soft spring flush gall wasp targets — that runs a bit against how The Feed times things, just flagging it as a real tension rather than something I’ve changed.' }
+  ];
+  function loadDiseaseNotes() {
+    try {
+      var raw = localStorage.getItem(DISEASE_NOTES_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {};
+  }
+  var diseaseNotes = loadDiseaseNotes();
+  function saveDiseaseNotes() { localStorage.setItem(DISEASE_NOTES_KEY, JSON.stringify(diseaseNotes)); }
+  var diseaseNotesOpen = {};
+  // Icon glyph vs. timing colour are separate here — Watch/Fungicide/Insect
+  // all use the same "reactive" toolkit colour, just different pictures.
+  var ICON_CLS = { leaf: 'leaf', winter: 'winter', bud: 'bud', petal: 'petal', watch: 'toolkit', fungicide: 'toolkit', insect: 'toolkit' };
+
+  function renderDiseaseNotes(container) {
+    var heading = document.createElement('h2');
+    heading.className = 'category-heading';
+    heading.textContent = 'Notes, by disease';
+    container.appendChild(heading);
+
+    var lede = document.createElement('p');
+    lede.className = 'lede';
+    lede.style.marginBottom = '0.25rem';
+    lede.textContent = 'One place per disease instead of repeated under every plant. Tap to open, write straight into the box.';
+    container.appendChild(lede);
+
+    var platesEl = document.createElement('div');
+    platesEl.className = 'plates';
+
+    DISEASE_NOTES.forEach(function (note) {
+      var plate = document.createElement('div');
+      plate.className = 'plate ' + (ICON_CLS[note.icon] || 'toolkit') + (diseaseNotesOpen[note.key] ? ' is-open' : '');
+
+      var head = document.createElement('button');
+      head.type = 'button';
+      head.className = 'plate-head';
+      head.innerHTML =
+        '<span class="plate-icon">' + (ICONS[note.icon] || '') + '</span>' +
+        '<span class="plate-title">' + escapeHtml(note.title) + '</span>' +
+        '<span class="plate-chevron">&#9662;</span>';
+      head.addEventListener('click', function () {
+        diseaseNotesOpen[note.key] = !diseaseNotesOpen[note.key];
+        renderRoute();
+      });
+
+      var body = document.createElement('div');
+      body.className = 'plate-body';
+      var inner = document.createElement('div');
+      inner.className = 'plate-body-inner';
+
+      var editable = document.createElement('div');
+      editable.className = 'chapter-editable';
+      editable.contentEditable = 'true';
+      editable.setAttribute('data-placeholder', 'Write whatever you like here...');
+      editable.innerHTML = (diseaseNotes[note.key] !== undefined) ? diseaseNotes[note.key] : escapeHtml(note.seed);
+      editable.addEventListener('input', function () {
+        diseaseNotes[note.key] = editable.innerHTML;
+        saveDiseaseNotes();
+      });
+      editable.addEventListener('keydown', function (ev) {
+        var mod = ev.metaKey || ev.ctrlKey;
+        if (mod && (ev.key === 'b' || ev.key === 'B')) {
+          ev.preventDefault();
+          document.execCommand('bold');
+          diseaseNotes[note.key] = editable.innerHTML;
+          saveDiseaseNotes();
+        }
+      });
+      editable.addEventListener('paste', function (ev) {
+        ev.preventDefault();
+        var text = (ev.clipboardData || window.clipboardData).getData('text/plain');
+        document.execCommand('insertText', false, text);
+      });
+
+      inner.appendChild(editable);
+      body.appendChild(inner);
+      plate.appendChild(head);
+      plate.appendChild(body);
+      platesEl.appendChild(plate);
+    });
+
+    container.appendChild(platesEl);
+  }
+
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function addDays(dateISO, days) {
+    var d = new Date(dateISO + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function fmtDateShort(iso) {
+    return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', year: '2-digit' }).format(new Date(iso + 'T00:00:00'));
+  }
+
+  // One shared season label for the whole page. Everything is "this year"
+  // until Feb 1, when the whole cycle rolls forward at once and all ticks
+  // (including Watch) clear together.
+  var SEASON_RESET_MONTH = 1; // February (0 = Jan)
+  var SEASON_RESET_DAY = 1;
+
+  function seasonCycleOf(dateISO) {
+    var d = new Date(dateISO + 'T00:00:00');
+    var y = d.getFullYear();
+    var resetThisYear = new Date(y, SEASON_RESET_MONTH, SEASON_RESET_DAY);
+    return d < resetThisYear ? y - 1 : y;
+  }
+  function currentSeasonCycle() { return seasonCycleOf(todayISO()); }
+  function cycleTag() { return '’' + String(currentSeasonCycle()).slice(-2); }
+
+  // Old per-bucket formula, kept only so the one-time migration below can
+  // tell which existing v1 ticks were "current" under the old rule.
+  function legacyAnchorCycleOf(dateISO, anchorMonth) {
+    var d = new Date(dateISO + 'T00:00:00');
+    return d.getMonth() > anchorMonth ? d.getFullYear() + 1 : d.getFullYear();
+  }
+
+  function loadDone() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {};
+  }
+  var done = loadDone();
+  function saveDone() { localStorage.setItem(STORAGE_KEY, JSON.stringify(done)); }
+
+  function loadHistory() {
+    try {
+      var raw = localStorage.getItem(HISTORY_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {};
+  }
+  var history = loadHistory();
+  function saveHistory() { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }
+
+  function entriesFor(plantName) { return history[plantName] || []; }
+  function entriesForSpray(plantName, id) {
+    return entriesFor(plantName).filter(function (e) { return e.sprayId === id; });
+  }
+  function mostRecentThisSeason(entries) {
+    var thisSeason = entries.filter(function (e) { return seasonCycleOf(e.date) === currentSeasonCycle(); });
+    if (!thisSeason.length) return null;
+    thisSeason.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    return thisSeason[0];
+  }
+  function logApplication(plantName, sprayId) {
+    if (!history[plantName]) history[plantName] = [];
+    history[plantName].unshift({ id: uid(), sprayId: sprayId, date: todayISO(), note: '' });
+    saveHistory();
+  }
+
+  // One-time move: v1's flat done[id]=cycle map, from before the single-
+  // season-cycle fix, gets relabelled to the new cycle number AND seeded
+  // into the history log (with today's date, since v1 never stored one)
+  // so nothing that was ticked appears to vanish when this ships.
+  function migrateToV2() {
+    var v1raw = null;
+    try { v1raw = localStorage.getItem('orchard-spray-v1'); } catch (e) {}
+    if (!v1raw) return;
+    var v1;
+    try { v1 = JSON.parse(v1raw); } catch (e) { return; }
+    var alreadyMigratedSingleCycle = !!localStorage.getItem(MIGRATION_KEY);
+    var newCycle = currentSeasonCycle();
+    var changed = false;
+    CATEGORIES.forEach(function (cat) {
+      cat.plants.forEach(function (plant) {
+        (plant.sprays || []).forEach(function (s) {
+          var t = TIME_DEFS[s.time];
+          var id = plant.name + '::' + s.time + '::' + s.key;
+          var v1val = v1[id];
+          if (v1val === undefined) return;
+          var wasCurrent = alreadyMigratedSingleCycle
+            ? v1val === newCycle
+            : v1val === legacyAnchorCycleOf(todayISO(), t.anchorMonth);
+          if (wasCurrent) {
+            done[id] = newCycle;
+            if (!entriesForSpray(plant.name, id).length) logApplication(plant.name, id);
+            changed = true;
+          }
+        });
+      });
+    });
+    if (changed) { saveDone(); saveHistory(); }
+  }
+  migrateToV2();
+
+  function isDone(id) { return done[id] === currentSeasonCycle(); }
+  function toggleSpray(plantName, id) {
+    if (isDone(id)) { delete done[id]; saveDone(); render(); return; }
+    done[id] = currentSeasonCycle();
+    saveDone();
+    var already = entriesForSpray(plantName, id).some(function (e) { return seasonCycleOf(e.date) === currentSeasonCycle(); });
+    if (!already) logApplication(plantName, id);
+    render();
+  }
+  // Used for interval sprays AND the reactive catch-alls — every click
+  // just logs another dated entry. No once-per-season limit, no toggle-off:
+  // the whole point of the catch-alls is catching repeat reactive use.
+  function logIntervalSpray(plantName, id) {
+    logApplication(plantName, id);
+    render();
+  }
+
+  // Renamed display names, keyed by the plant's original (fixed) name so
+  // renaming never disturbs the done-state / history ids above.
+  function loadNames() {
+    try {
+      var raw = localStorage.getItem(NAMES_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {};
+  }
+  var customNames = loadNames();
+  function saveNames() { localStorage.setItem(NAMES_KEY, JSON.stringify(customNames)); }
+  function displayName(plant) { return customNames[plant.name] || plant.name; }
+  function renamePlant(originalName, newName) {
+    var v = newName.trim();
+    if (!v || v === originalName) delete customNames[originalName];
+    else customNames[originalName] = v;
+    saveNames();
+  }
+
+  function findPlant(name) {
+    for (var i = 0; i < CATEGORIES.length; i++) {
+      for (var j = 0; j < CATEGORIES[i].plants.length; j++) {
+        if (CATEGORIES[i].plants[j].name === name) return { plant: CATEGORIES[i].plants[j], category: CATEGORIES[i].name };
+      }
+    }
+    return null;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  var editingNote = null;
+  var editingDate = null;
+  var confirmingDelete = null;
+  var confirmingDeleteTimer = null;
+
+  function setEntryNote(plantName, entryId, value) {
+    var e = entriesFor(plantName).filter(function (x) { return x.id === entryId; })[0];
+    if (e) { e.note = value; saveHistory(); }
+  }
+  function setEntryDate(plantName, entryId, value) {
+    var e = entriesFor(plantName).filter(function (x) { return x.id === entryId; })[0];
+    if (e) { e.date = value; saveHistory(); }
+  }
+  function deleteEntry(plantName, entryId) {
+    history[plantName] = entriesFor(plantName).filter(function (x) { return x.id !== entryId; });
+    saveHistory();
+    renderRoute();
+  }
+  function addFreeEntry(plantName) {
+    if (!history[plantName]) history[plantName] = [];
+    var id = uid();
+    history[plantName].unshift({ id: id, sprayId: null, date: todayISO(), note: '' });
+    saveHistory();
+    editingNote = id;
+    renderRoute();
+  }
+
+  var viewEl = document.getElementById('view');
+
+  function renderRoute() {
+    var hash = location.hash;
+    var m = hash.match(/^#plant\/(.+)$/);
+    var name = m ? decodeURIComponent(m[1]) : null;
+    if (name && findPlant(name)) renderDetail(name);
+    else renderList();
+  }
+
+  // Builds one button. Every button type funnels through here now — a
+  // single code path for applying the done/colour class fixes the old bug
+  // where some button kinds never picked up their colour, and the icon is
+  // always present (rather than a checkmark that only sometimes reserved
+  // space) which fixes the text-suddenly-indents-once-you’ve-clicked-it issue.
+  function buildSprayButton(plant, s) {
+    var t = TIME_DEFS[s.time];
+    var id = plant.name + '::' + s.time + '::' + s.key;
+    var iconKey = s.catchall ? s.catchKind : t.icon;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+
+    if (s.catchall) {
+      var entries = entriesForSpray(plant.name, id);
+      var recent = mostRecentThisSeason(entries);
+      btn.className = 'spray-btn ' + t.cls + (recent ? ' is-done' : '');
+      var hint = recent ? 'Last: ' + fmtDateShort(recent.date) : '';
+      btn.innerHTML =
+        '<span class="spray-btn-title">' + iconSvg(iconKey, t.cls) + '<span>' + cycleTag() + '</span></span>' +
+        (hint ? '<span class="spray-btn-hint">' + escapeHtml(hint) + '</span>' : '');
+      btn.addEventListener('click', function () { logIntervalSpray(plant.name, id); });
+      return btn;
+    }
+
+    var productsHtml = s.products && s.products.length
+      ? ' — ' + s.products.map(escapeHtml).join(' <span class="hash">│</span> ')
+      : '';
+    var prefixHtml = s.prefix ? '<span class="spray-btn-prefix">' + escapeHtml(s.prefix) + '</span>' : '';
+    var titleHtml = '<span class="spray-btn-title">' + prefixHtml + iconSvg(iconKey, t.cls) + '<span>' + cycleTag() + productsHtml + '</span></span>';
+
+    if (s.interval) {
+      var ivEntries = entriesForSpray(plant.name, id);
+      var ivRecent = mostRecentThisSeason(ivEntries);
+      if (!ivRecent) {
+        btn.className = 'spray-btn ' + t.cls;
+        btn.innerHTML = titleHtml + (s.disease ? '<span class="spray-btn-hint">' + escapeHtml(s.disease) + '</span>' : '');
+      } else {
+        var nextDue = addDays(ivRecent.date, s.interval.days);
+        var dueNow = todayISO() >= nextDue;
+        btn.className = 'spray-btn ' + t.cls + (dueNow ? ' is-followup-due' : ' is-done');
+        var statusText = dueNow ? ('Follow-up due — ' + s.interval.label) : ('Next due ' + fmtDateShort(nextDue));
+        var hintText = s.disease ? (s.disease + ' — ' + statusText) : statusText;
+        btn.innerHTML = titleHtml + '<span class="spray-btn-hint">' + escapeHtml(hintText) + '</span>';
+      }
+      btn.addEventListener('click', function () { logIntervalSpray(plant.name, id); });
+      return btn;
+    }
+
+    var d = isDone(id);
+    btn.className = 'spray-btn ' + t.cls + (d ? ' is-done' : '');
+    btn.innerHTML = titleHtml + (s.disease ? '<span class="spray-btn-hint">' + escapeHtml(s.disease) + '</span>' : '');
+    btn.addEventListener('click', function () { toggleSpray(plant.name, id); });
+    return btn;
+  }
+
+  function renderList() {
+    viewEl.innerHTML = '';
+
+    var header = document.createElement('header');
+    header.className = 'masthead';
+    header.innerHTML =
+      '<p class="kicker">Chapter &middot; fungal spray &amp; pest watch</p>' +
+      '<h1>The Spray</h1>' +
+      '<p class="lede">One log per treatment, per tree, per window. Only shows a button where there’s an actual reason for it — nothing guessed. Tap a plant’s name for its full spray history.</p>';
+    viewEl.appendChild(header);
+
+    var keyEl = document.createElement('div');
+    keyEl.className = 'key';
+    keyEl.innerHTML =
+      '<span class="key-item"><span class="key-swatch leaf"></span>Leaf fall</span>' +
+      '<span class="key-item"><span class="key-swatch winter"></span>Winter</span>' +
+      '<span class="key-item"><span class="key-swatch bud"></span>Budswell</span>' +
+      '<span class="key-item"><span class="key-swatch petal"></span>Petal fall</span>' +
+      '<span class="key-item"><span class="key-swatch toolkit"></span>Watch / reactive</span>' +
+      '<span class="key-item"><span class="key-swatch due"></span>Follow-up due</span>';
+    viewEl.appendChild(keyEl);
+
+    var catsEl = document.createElement('div');
+
+    CATEGORIES.forEach(function (cat) {
+      var section = document.createElement('div');
+      section.className = 'category';
+      var heading = document.createElement('h2');
+      heading.className = 'category-heading';
+      heading.textContent = cat.name;
+      section.appendChild(heading);
+
+      var cards = document.createElement('div');
+      cards.className = 'cards';
+
+      cat.plants.forEach(function (plant) {
+        var card = document.createElement('div');
+        card.className = 'card';
+
+        var link = document.createElement('button');
+        link.type = 'button';
+        link.className = 'plant-link';
+        link.innerHTML = '<span>' + escapeHtml(displayName(plant)) + '</span><span class="plant-link-arrow">&rarr;</span>';
+        link.addEventListener('click', function () { location.hash = '#plant/' + encodeURIComponent(plant.name); });
+        card.appendChild(link);
+
+        if (plant.sprays && plant.sprays.length) {
+          var row = document.createElement('div');
+          row.className = 'spray-row';
+          plant.sprays.forEach(function (s) {
+            row.appendChild(buildSprayButton(plant, s));
+          });
+          card.appendChild(row);
+        }
+
+        if (plant.note) {
+          var note = document.createElement('div');
+          note.className = 'plant-note';
+          note.textContent = plant.note;
+          card.appendChild(note);
+        }
+        if (plant.warn) {
+          var warn = document.createElement('div');
+          warn.className = 'plant-warn';
+          warn.textContent = '⚠ ' + plant.warn;
+          card.appendChild(warn);
+        }
+
+        cards.appendChild(card);
+      });
+
+      section.appendChild(cards);
+      catsEl.appendChild(section);
+    });
+
+    viewEl.appendChild(catsEl);
+
+    var notesSection = document.createElement('div');
+    notesSection.className = 'category';
+    notesSection.style.marginTop = '0.5rem';
+    renderDiseaseNotes(notesSection);
+    viewEl.appendChild(notesSection);
+  }
+
+  function render() { renderRoute(); }
+
+  function renderDetail(plantName) {
+    var found = findPlant(plantName);
+    var plant = found.plant;
+    viewEl.innerHTML = '';
+
+    var back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'plant-link';
+    back.innerHTML = '<span class="plant-link-arrow" style="transform:rotate(180deg)">&rarr;</span><span>All trees</span>';
+    back.addEventListener('click', function () { location.hash = ''; });
+    viewEl.appendChild(back);
+
+    var detail = document.createElement('div');
+    detail.className = 'detail';
+
+    var head = document.createElement('div');
+    head.className = 'detail-header';
+
+    var cat = document.createElement('p');
+    cat.className = 'detail-category';
+    cat.textContent = found.category;
+    head.appendChild(cat);
+
+    var name = document.createElement('h1');
+    name.className = 'detail-name';
+    name.contentEditable = 'true';
+    name.spellcheck = false;
+    name.textContent = displayName(plant);
+    name.addEventListener('blur', function () {
+      renamePlant(plant.name, name.textContent);
+      name.textContent = displayName(plant);
+    });
+    name.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { ev.preventDefault(); name.blur(); }
+    });
+    head.appendChild(name);
+
+    var renameHint = document.createElement('p');
+    renameHint.className = 'rename-hint';
+    renameHint.textContent = 'Tap the name to rename it.';
+    head.appendChild(renameHint);
+
+    detail.appendChild(head);
+
+    var histPanel = document.createElement('div');
+    histPanel.className = 'panel';
+    histPanel.innerHTML = '<h2>Spray history</h2><p class="panel-hint">Every log from the tick buttons lands here. Tap an entry to note which product you used — useful for keeping the rotation honest.</p>';
+
+    var addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'add-event-btn';
+    addBtn.textContent = '+ Log a spray';
+    addBtn.addEventListener('click', function () { addFreeEntry(plant.name); });
+    histPanel.appendChild(addBtn);
+
+    var entries = entriesFor(plant.name).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+
+    if (!entries.length) {
+      var empty = document.createElement('p');
+      empty.className = 'history-empty';
+      empty.textContent = 'Nothing logged yet — ticks from the buttons above will show up here.';
+      histPanel.appendChild(empty);
+    } else {
+      var list = document.createElement('div');
+      list.className = 'history-list';
+      entries.forEach(function (e) {
+        var isFree = !e.sprayId;
+        var label = isFree ? 'Spray' : sprayLabel(e.sprayId);
+
+        var row = document.createElement('div');
+        row.className = 'history-row';
+
+        if (editingDate === e.id) {
+          var dateInput = document.createElement('input');
+          dateInput.type = 'date';
+          dateInput.className = 'history-date-input';
+          dateInput.value = e.date;
+          dateInput.addEventListener('blur', function () {
+            if (dateInput.value) setEntryDate(plant.name, e.id, dateInput.value);
+            editingDate = null;
+            renderRoute();
+          });
+          row.appendChild(dateInput);
+          setTimeout(function () { dateInput.focus(); }, 0);
+        } else {
+          var dateBtn = document.createElement('button');
+          dateBtn.type = 'button';
+          dateBtn.className = 'history-date';
+          dateBtn.textContent = fmtDateShort(e.date);
+          dateBtn.title = 'Click to change the date';
+          dateBtn.addEventListener('click', function () { editingDate = e.id; renderRoute(); });
+          row.appendChild(dateBtn);
+        }
+
+        if (editingNote === e.id) {
+          var labelSpan = document.createElement('span');
+          labelSpan.className = 'history-label' + (isFree ? ' is-event' : '');
+          labelSpan.textContent = label;
+          row.appendChild(labelSpan);
+
+          var noteField = document.createElement('textarea');
+          noteField.className = 'entry-note';
+          noteField.placeholder = 'what did you use?';
+          noteField.value = e.note || '';
+          noteField.addEventListener('input', function () { setEntryNote(plant.name, e.id, noteField.value); });
+          noteField.addEventListener('blur', function () { editingNote = null; renderRoute(); });
+          row.appendChild(noteField);
+          setTimeout(function () { noteField.focus(); }, 0);
+        } else {
+          var body = document.createElement('button');
+          body.type = 'button';
+          body.className = 'history-body';
+
+          var bodyLabel = document.createElement('span');
+          bodyLabel.className = 'history-label' + (isFree ? ' is-event' : '');
+          bodyLabel.textContent = label;
+          body.appendChild(bodyLabel);
+
+          if (e.note) {
+            var noteText = document.createElement('span');
+            noteText.className = 'history-note-text';
+            noteText.textContent = ' — ' + e.note;
+            body.appendChild(noteText);
+          }
+
+          body.addEventListener('click', function () { editingNote = e.id; renderRoute(); });
+          row.appendChild(body);
+        }
+
+        var isConfirmingDel = confirmingDelete === e.id;
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'history-del' + (isConfirmingDel ? ' is-confirming' : '');
+        del.textContent = '✕';
+        del.title = isConfirmingDel ? 'Click again to delete' : 'Delete this entry';
+        del.addEventListener('click', function () {
+          if (confirmingDelete === e.id) {
+            clearTimeout(confirmingDeleteTimer);
+            confirmingDelete = null;
+            deleteEntry(plant.name, e.id);
+          } else {
+            confirmingDelete = e.id;
+            clearTimeout(confirmingDeleteTimer);
+            confirmingDeleteTimer = setTimeout(function () { confirmingDelete = null; renderRoute(); }, 3000);
+            renderRoute();
+          }
+        });
+        row.appendChild(del);
+
+        list.appendChild(row);
+      });
+      histPanel.appendChild(list);
+    }
+
+    detail.appendChild(histPanel);
+    viewEl.appendChild(detail);
+  }
+
+  window.addEventListener('hashchange', renderRoute);
+  renderRoute();
+})();
+</script>
+</html>
