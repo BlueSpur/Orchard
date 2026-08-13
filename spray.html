@@ -305,29 +305,50 @@ var firebaseApp = initializeApp(firebaseConfig);
 var db = getFirestore(firebaseApp);
 var SYNC_ROOT = 'orchard-7f3k9m2x';
 var syncTimers = {};
+var syncReady = {};
+var syncQueued = {};
 
 // Pushes a localStorage-shaped value to the shared cloud database, debounced
 // per key so a burst of typing doesn't fire a write on every keystroke.
+//
+// Nothing is allowed up until we've heard back from the cloud once for that
+// key. Without that gate, a device holding no data of its own (a phone
+// opening the site for the first time) builds the default starter list on
+// load, saves it, and pushes that emptiness over the real data before the
+// real data has even arrived — silently, with no error anywhere.
 function syncPush(key, value) {
+  if (!syncReady[key]) { syncQueued[key] = value; return; }
   clearTimeout(syncTimers[key]);
   syncTimers[key] = setTimeout(function () {
     setDoc(doc(db, SYNC_ROOT, key), { value: value, updatedAt: Date.now() });
   }, 600);
 }
 
-// Calls onRemote(value) whenever another device's confirmed write shows up.
-// Ignores our own optimistic (still-pending) write so this can't loop. The
-// first time a key has never been synced anywhere, seeds the cloud with
-// whatever's currently on this device instead of waiting for an edit.
+// Calls onRemote(value) whenever a confirmed write shows up. Ignores our own
+// optimistic (still-pending) write so this can't loop.
+//
+// On the very first snapshot: if the cloud already holds this key, the cloud
+// wins and anything this device queued during startup is discarded (that's
+// the defaults-clobber-real-data case above). If the cloud has never held it,
+// this device seeds it. Either way the local copy is stashed under a
+// -presync-backup key first, so a bad sync can never be the only copy.
 function syncWatch(key, localValueGetter, onRemote) {
-  var seeded = false;
   onSnapshot(doc(db, SYNC_ROOT, key), function (snap) {
     if (snap.metadata.hasPendingWrites) return;
+    var first = !syncReady[key];
+    if (first) {
+      try {
+        localStorage.setItem(key + '-presync-backup', JSON.stringify(localValueGetter()));
+      } catch (e) {}
+      syncReady[key] = true;
+    }
     if (snap.exists()) {
+      if (first) delete syncQueued[key];
       onRemote(snap.data().value);
-    } else if (!seeded) {
-      seeded = true;
-      syncPush(key, localValueGetter());
+    } else if (first) {
+      var seed = syncQueued[key] !== undefined ? syncQueued[key] : localValueGetter();
+      delete syncQueued[key];
+      syncPush(key, seed);
     }
   });
 }
