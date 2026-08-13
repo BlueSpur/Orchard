@@ -606,10 +606,52 @@
 
   <div id="view"></div>
 
-  <footer>Saved in this browser only, for now.</footer>
+  <footer>Synced across your devices automatically.</footer>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+var firebaseConfig = {
+  apiKey: "AIzaSyDoqVC7vjA2deg9JZVLdpnl6HX9N9e00f0",
+  authDomain: "orchard-c3638.firebaseapp.com",
+  projectId: "orchard-c3638",
+  storageBucket: "orchard-c3638.firebasestorage.app",
+  messagingSenderId: "505646311271",
+  appId: "1:505646311271:web:f5d225f1e7d4e3061071c2"
+};
+var firebaseApp = initializeApp(firebaseConfig);
+var db = getFirestore(firebaseApp);
+var SYNC_ROOT = 'orchard-7f3k9m2x';
+var syncTimers = {};
+
+// Pushes a localStorage-shaped value to the shared cloud database, debounced
+// per key so a burst of typing doesn't fire a write on every keystroke.
+function syncPush(key, value) {
+  clearTimeout(syncTimers[key]);
+  syncTimers[key] = setTimeout(function () {
+    setDoc(doc(db, SYNC_ROOT, key), { value: value, updatedAt: Date.now() });
+  }, 600);
+}
+
+// Calls onRemote(value) whenever another device's confirmed write shows up.
+// Ignores our own optimistic (still-pending) write so this can't loop. The
+// first time a key has never been synced anywhere, seeds the cloud with
+// whatever's currently on this device instead of waiting for an edit.
+function syncWatch(key, localValueGetter, onRemote) {
+  var seeded = false;
+  onSnapshot(doc(db, SYNC_ROOT, key), function (snap) {
+    if (snap.metadata.hasPendingWrites) return;
+    if (snap.exists()) {
+      onRemote(snap.data().value);
+    } else if (!seeded) {
+      seeded = true;
+      syncPush(key, localValueGetter());
+    }
+  });
+}
+
 (function () {
   var STORAGE_KEY = 'orchard-feed-v2';
   var LEGACY_KEY = 'orchard-feed-v1';
@@ -823,6 +865,7 @@
 
   function savePlants(plants) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+    syncPush(STORAGE_KEY, plants);
   }
 
   var plants = loadPlants();
@@ -1371,6 +1414,16 @@
 
   window.addEventListener('hashchange', renderRoute);
   renderRoute();
+
+  syncWatch(STORAGE_KEY, function () { return plants; }, function (remote) {
+    plants = remote;
+    var changed = ensureCycleRenumbered(plants);
+    if (ensureDoneState(plants)) changed = true;
+    if (ensureSingleCycleMigrated(plants)) changed = true;
+    if (ensureNotesMigrated(plants)) changed = true;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+    renderRoute();
+  });
 })();
 </script>
 
