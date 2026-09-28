@@ -273,6 +273,22 @@
   .history-del:hover { color: var(--autumn, var(--warn)); }
   .history-del:focus-visible { outline: 2px solid var(--accent); }
   .history-del.is-confirming { opacity: 1; color: var(--warn-ink, var(--ink)); background: var(--warn-bg); border-radius: 999px; padding: 0 0.25rem; }
+
+  /* ---- group colours (same in The Feed and The Spray) ---- */
+  .grp-stone   { --grp: #8c2f4b; }
+  .grp-pome    { --grp: #e0913f; }
+  .grp-citrus  { --grp: #d4ad12; }
+  .grp-berries { --grp: #9d6fb0; }
+  .grp-other   { --grp: #5f8a3c; }
+  .category.has-grp .category-heading { display: flex; align-items: center; gap: 0.5rem; }
+  .category.has-grp .category-heading::before {
+    content: ''; width: 0.85rem; height: 0.85rem; border-radius: 0.25rem; background: var(--grp); flex-shrink: 0;
+  }
+  .card.has-grp {
+    border-left: 5px solid var(--grp);
+    background: color-mix(in srgb, var(--grp) 11%, var(--surface-raised));
+  }
+  .detail-category.has-grp { color: var(--grp); }
 </style>
 
 <div class="page">
@@ -494,6 +510,13 @@ function syncWatch(key, localValueGetter, onRemote) {
           pestCatchall(), fungicideCatchall()
         ] },
         { name: 'Lime #2', sprays: [
+          {time:'winter', key:'greasy1', label:'Greasy spot spray', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'greasy2', label:'Greasy spot follow-up', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
+          {time:'budswell', key:'miteoil', label:'Mite prevention', disease:'Mite', products:['Hort. oil']},
+          {time:'petalfall', key:'brownrot', label:'Brown rot spray', disease:'Brown rot', products:['Copper'], interval:{days:42, label:'repeat if wet weather continues'}},
+          pestCatchall(), fungicideCatchall()
+        ] },
+        { name: 'Finger lime', sprays: [
           {time:'winter', key:'greasy1', label:'Greasy spot spray', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
           {time:'budswell', key:'greasy2', label:'Greasy spot follow-up', disease:'Greasy spot', products:['Copper','Mancozeb','Chlortan']},
           {time:'budswell', key:'miteoil', label:'Mite prevention', disease:'Mite', products:['Hort. oil']},
@@ -835,6 +858,9 @@ function syncWatch(key, localValueGetter, onRemote) {
     return null;
   }
 
+  var GROUP_CLASS = { 'Stone fruit': 'grp-stone', 'Pome': 'grp-pome', 'Citrus': 'grp-citrus', 'Berries & cane': 'grp-berries', 'Other': 'grp-other' };
+  function grpClass(cat) { return GROUP_CLASS[cat] || 'grp-other'; }
+
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -959,7 +985,7 @@ function syncWatch(key, localValueGetter, onRemote) {
 
     CATEGORIES.forEach(function (cat) {
       var section = document.createElement('div');
-      section.className = 'category';
+      section.className = 'category has-grp ' + grpClass(cat.name);
       var heading = document.createElement('h2');
       heading.className = 'category-heading';
       heading.textContent = cat.name;
@@ -970,7 +996,7 @@ function syncWatch(key, localValueGetter, onRemote) {
 
       cat.plants.forEach(function (plant) {
         var card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'card has-grp ' + grpClass(cat.name);
 
         var link = document.createElement('button');
         link.type = 'button';
@@ -1038,7 +1064,7 @@ function syncWatch(key, localValueGetter, onRemote) {
     head.className = 'detail-header';
 
     var cat = document.createElement('p');
-    cat.className = 'detail-category';
+    cat.className = 'detail-category has-grp ' + grpClass(found.category);
     cat.textContent = found.category;
     head.appendChild(cat);
 

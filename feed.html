@@ -593,6 +593,79 @@
     max-width: 30rem;
     margin: 0 auto;
   }
+
+  /* ---- group colours (same in The Feed and The Spray) ---- */
+  .grp-stone   { --grp: #8c2f4b; }
+  .grp-pome    { --grp: #e0913f; }
+  .grp-citrus  { --grp: #d4ad12; }
+  .grp-berries { --grp: #9d6fb0; }
+  .grp-other   { --grp: #5f8a3c; }
+  .category.has-grp .category-heading { display: flex; align-items: center; gap: 0.5rem; }
+  .category.has-grp .category-heading::before {
+    content: ''; width: 0.85rem; height: 0.85rem; border-radius: 0.25rem; background: var(--grp); flex-shrink: 0;
+  }
+  .card.has-grp {
+    border-left: 5px solid var(--grp);
+    background: color-mix(in srgb, var(--grp) 11%, var(--surface-raised));
+  }
+  .detail-category.has-grp { color: var(--grp); }
+
+  /* ---- photos ---- */
+  .main-photo { margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .main-photo img {
+    width: 100%; max-height: 26rem; object-fit: cover; border-radius: 0.6rem;
+    border: 1px solid var(--border); background: var(--surface-sunken); cursor: zoom-in; display: block; min-height: 8rem;
+  }
+  .main-photo figcaption { font-size: 0.78rem; color: var(--ink-muted); }
+  .photo-add-main, .photo-add {
+    font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    border: 1.5px dashed var(--border); background: var(--surface-sunken); color: var(--ink-muted);
+    border-radius: 0.6rem; padding: 0.7rem 1rem; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .photo-add-main { width: 100%; justify-content: center; padding: 2.2rem 1rem; font-size: 0.95rem; }
+  .photo-add-main:hover, .photo-add:hover { color: var(--ink); border-color: var(--accent); }
+  .photo-add-main:focus-visible, .photo-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .photo-hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .photo-status { font-size: 0.82rem; color: var(--ink-muted); margin: 0.5rem 0 0; }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: 0.6rem; margin-top: 0.8rem; }
+  .photo-thumb {
+    position: relative; background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+    display: flex; flex-direction: column; gap: 0.2rem; color: var(--ink);
+  }
+  .photo-thumb img {
+    width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 0.45rem;
+    border: 1px solid var(--border); background: var(--surface-sunken); display: block;
+  }
+  .photo-thumb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 0.45rem; }
+  .photo-thumb .photo-date { font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-muted); }
+  .photo-thumb .photo-cap { font-size: 0.74rem; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .photo-thumb .photo-star {
+    position: absolute; top: 0.3rem; left: 0.3rem; background: var(--accent); color: var(--accent-ink);
+    font-size: 0.66rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 999px;
+  }
+  .photo-viewer {
+    position: fixed; inset: 0; z-index: 50; background: rgba(10, 12, 8, 0.86);
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .photo-viewer-inner {
+    background: var(--surface-raised); border-radius: 0.7rem; padding: 0.8rem; max-width: 46rem; width: 100%;
+    max-height: calc(100vh - 2rem); overflow-y: auto; display: flex; flex-direction: column; gap: 0.7rem;
+  }
+  .photo-viewer-inner img { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 0.45rem; background: var(--surface-sunken); min-height: 8rem; }
+  .photo-viewer-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .photo-viewer-row input[type="date"], .photo-viewer-row input[type="text"] {
+    font-family: var(--font-body); font-size: 0.9rem; padding: 0.4rem 0.55rem; border-radius: 0.4rem;
+    border: 1px solid var(--border); background: var(--surface-sunken); color: var(--ink);
+  }
+  .photo-viewer-row input[type="text"] { flex: 1 1 14rem; }
+  .photo-btn {
+    font-family: var(--font-body); font-size: 0.82rem; font-weight: 600; padding: 0.45rem 0.8rem; border-radius: 0.5rem;
+    border: 1px solid var(--border); background: var(--surface-sunken); color: var(--ink); cursor: pointer;
+  }
+  .photo-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .photo-btn.is-main { background: var(--accent); color: var(--accent-ink); border-color: transparent; cursor: default; }
+  .photo-btn.danger.is-confirming { background: #b3261e; color: #fff; border-color: transparent; }
+  .photo-btn.close { margin-left: auto; }
 </style>
 
 <div class="page">
@@ -611,7 +684,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
 var firebaseConfig = {
   apiKey: "AIzaSyDoqVC7vjA2deg9JZVLdpnl6HX9N9e00f0",
@@ -1033,9 +1106,318 @@ function syncWatch(key, localValueGetter, onRemote) {
 
   var viewEl = document.getElementById('view');
 
+  var GROUP_CLASS = { 'Stone fruit': 'grp-stone', 'Pome': 'grp-pome', 'Citrus': 'grp-citrus', 'Berries & cane': 'grp-berries', 'Other': 'grp-other' };
+  function grpClass(cat) { return GROUP_CLASS[cat] || 'grp-other'; }
+
+  // ---- Photos ----
+  // The list of photos per tree (ids, dates, notes, which one is the main
+  // photo) syncs like everything else, under its own key. The pictures
+  // themselves live in their own cloud documents, one per photo, so they
+  // never make the tree data heavy and are only fetched when a tree's page
+  // is open.
+  var PHOTO_KEY = 'orchard-feed-photos-v1';
+  var photoIndex = {};
+  try { photoIndex = JSON.parse(localStorage.getItem(PHOTO_KEY) || '{}') || {}; } catch (e) { photoIndex = {}; }
+  var photoCache = {};
+  var photoLoading = {};
+  var viewingPhotoId = null;
+  var confirmingPhotoDelete = null;
+  var confirmingPhotoTimer = null;
+  var uploadingPhoto = false;
+
+  function savePhotoIndex() {
+    localStorage.setItem(PHOTO_KEY, JSON.stringify(photoIndex));
+    syncPush(PHOTO_KEY, photoIndex);
+  }
+
+  function plantPhotos(plantId) {
+    var e = photoIndex[plantId];
+    if (!e) { e = photoIndex[plantId] = { main: null, list: [] }; }
+    if (!e.list) e.list = [];
+    return e;
+  }
+
+  function findPhoto(plantId, photoId) {
+    var list = plantPhotos(plantId).list;
+    for (var i = 0; i < list.length; i++) if (list[i].id === photoId) return list[i];
+    return null;
+  }
+
+  function fillPhotoImages(id) {
+    var imgs = document.querySelectorAll('img[data-photo-id="' + id + '"]');
+    for (var i = 0; i < imgs.length; i++) imgs[i].src = photoCache[id];
+  }
+
+  function loadPhotoData(id) {
+    if (photoCache[id] || photoLoading[id]) return;
+    photoLoading[id] = true;
+    getDoc(doc(db, SYNC_ROOT, 'photo-' + id)).then(function (snap) {
+      delete photoLoading[id];
+      if (snap.exists()) { photoCache[id] = snap.data().value; fillPhotoImages(id); }
+    }).catch(function () { delete photoLoading[id]; });
+  }
+
+  function photoImg(id) {
+    var img = document.createElement('img');
+    img.alt = '';
+    img.setAttribute('data-photo-id', id);
+    if (photoCache[id]) img.src = photoCache[id]; else loadPhotoData(id);
+    return img;
+  }
+
+  // Phone photos are several megabytes; shrink to a sensible screen size and
+  // JPEG-compress until it fits comfortably in one cloud document.
+  function compressImage(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var maxEdge = 1400, quality = 0.75, out = null;
+        for (var attempt = 0; attempt < 6; attempt++) {
+          var scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.naturalWidth * scale);
+          canvas.height = Math.round(img.naturalHeight * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          out = canvas.toDataURL('image/jpeg', quality);
+          if (out.length < 850000) break;
+          maxEdge = Math.round(maxEdge * 0.8);
+          quality = Math.max(0.5, quality - 0.08);
+        }
+        resolve(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('That file could not be read as a picture.')); };
+      img.src = url;
+    });
+  }
+
+  function addPhoto(plantId, file) {
+    if (!file) return;
+    uploadingPhoto = true;
+    renderRoute();
+    compressImage(file).then(function (dataUrl) {
+      var id = uid() + uid();
+      photoCache[id] = dataUrl;
+      return setDoc(doc(db, SYNC_ROOT, 'photo-' + id), { value: dataUrl, plantId: plantId, updatedAt: Date.now() }).then(function () {
+        var e = plantPhotos(plantId);
+        e.list.unshift({ id: id, date: todayISO(), caption: '' });
+        if (!e.main) e.main = id;
+        savePhotoIndex();
+        uploadingPhoto = false;
+        viewingPhotoId = id;
+        renderRoute();
+      });
+    }).catch(function (err) {
+      uploadingPhoto = false;
+      renderRoute();
+      alert('Sorry, that photo didn\'t save. ' + ((err && err.message) || ''));
+    });
+  }
+
+  function setMainPhoto(plantId, photoId) {
+    plantPhotos(plantId).main = photoId;
+    savePhotoIndex();
+    renderRoute();
+  }
+
+  function setPhotoField(plantId, photoId, field, value) {
+    var p = findPhoto(plantId, photoId);
+    if (!p || p[field] === value) return;
+    p[field] = value;
+    savePhotoIndex();
+  }
+
+  function deletePhoto(plantId, photoId) {
+    var e = plantPhotos(plantId);
+    e.list = e.list.filter(function (p) { return p.id !== photoId; });
+    if (e.main === photoId) e.main = e.list.length ? e.list[0].id : null;
+    savePhotoIndex();
+    deleteDoc(doc(db, SYNC_ROOT, 'photo-' + photoId)).catch(function () {});
+    delete photoCache[photoId];
+    viewingPhotoId = null;
+    renderRoute();
+  }
+
+  function sortedPhotos(plantId) {
+    return plantPhotos(plantId).list.slice().sort(function (a, b) {
+      return (b.date || '').localeCompare(a.date || '');
+    });
+  }
+
+  function makePhotoPicker(plantId, labelText, cls) {
+    var wrap = document.createElement('label');
+    wrap.className = cls;
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.className = 'photo-hidden-input';
+    input.addEventListener('change', function () {
+      if (input.files && input.files[0]) addPhoto(plantId, input.files[0]);
+    });
+    wrap.appendChild(input);
+    wrap.appendChild(document.createTextNode(labelText));
+    wrap.tabIndex = 0;
+    wrap.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); input.click(); }
+    });
+    return wrap;
+  }
+
+  function buildMainPhoto(plant) {
+    var e = plantPhotos(plant.id);
+    var main = e.main ? findPhoto(plant.id, e.main) : null;
+    var fig = document.createElement('figure');
+    fig.className = 'main-photo';
+    if (main) {
+      var img = photoImg(main.id);
+      img.alt = plant.name;
+      img.addEventListener('click', function () { viewingPhotoId = main.id; renderRoute(); });
+      fig.appendChild(img);
+      var cap = document.createElement('figcaption');
+      cap.textContent = 'Main photo · ' + formatDate(main.date) + (main.caption ? ' — ' + main.caption : '');
+      fig.appendChild(cap);
+    } else if (uploadingPhoto) {
+      var st = document.createElement('p');
+      st.className = 'photo-status';
+      st.textContent = 'Saving photo…';
+      fig.appendChild(st);
+    } else {
+      fig.appendChild(makePhotoPicker(plant.id, '📷  Add a main photo of this tree', 'photo-add-main'));
+    }
+    return fig;
+  }
+
+  function buildPhotoPanel(plant) {
+    var panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = '<h2>Photos</h2><p class="panel-hint">A main photo to show progress, plus anything worth recording: blossom, disease, a bad week. Tap a photo to see it big, change its date or note, or make it the main one.</p>';
+    panel.appendChild(makePhotoPicker(plant.id, '+ Add photo', 'photo-add'));
+    if (uploadingPhoto) {
+      var st = document.createElement('p');
+      st.className = 'photo-status';
+      st.textContent = 'Saving photo…';
+      panel.appendChild(st);
+    }
+    var list = sortedPhotos(plant.id);
+    if (list.length) {
+      var grid = document.createElement('div');
+      grid.className = 'photo-grid';
+      var mainId = plantPhotos(plant.id).main;
+      list.forEach(function (p) {
+        var t = document.createElement('button');
+        t.type = 'button';
+        t.className = 'photo-thumb';
+        t.appendChild(photoImg(p.id));
+        if (p.id === mainId) {
+          var star = document.createElement('span');
+          star.className = 'photo-star';
+          star.textContent = '★ Main';
+          t.appendChild(star);
+        }
+        var d = document.createElement('span');
+        d.className = 'photo-date';
+        d.textContent = formatDate(p.date);
+        t.appendChild(d);
+        if (p.caption) {
+          var c = document.createElement('span');
+          c.className = 'photo-cap';
+          c.textContent = p.caption;
+          t.appendChild(c);
+        }
+        t.addEventListener('click', function () { viewingPhotoId = p.id; renderRoute(); });
+        grid.appendChild(t);
+      });
+      panel.appendChild(grid);
+    }
+    return panel;
+  }
+
+  function buildPhotoViewer(plant) {
+    var p = viewingPhotoId ? findPhoto(plant.id, viewingPhotoId) : null;
+    if (!p) { viewingPhotoId = null; return null; }
+    var isMain = plantPhotos(plant.id).main === p.id;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'photo-viewer';
+    overlay.addEventListener('click', function (ev) {
+      if (ev.target === overlay) { viewingPhotoId = null; renderRoute(); }
+    });
+    var inner = document.createElement('div');
+    inner.className = 'photo-viewer-inner';
+    inner.appendChild(photoImg(p.id));
+
+    var row1 = document.createElement('div');
+    row1.className = 'photo-viewer-row';
+    var date = document.createElement('input');
+    date.type = 'date';
+    date.value = p.date || '';
+    date.addEventListener('change', function () { if (date.value) setPhotoField(plant.id, p.id, 'date', date.value); });
+    row1.appendChild(date);
+    var cap = document.createElement('input');
+    cap.type = 'text';
+    cap.placeholder = 'Add a note (e.g. leaf curl on new growth)';
+    cap.value = p.caption || '';
+    cap.addEventListener('blur', function () { setPhotoField(plant.id, p.id, 'caption', cap.value.trim()); });
+    cap.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); cap.blur(); } });
+    row1.appendChild(cap);
+    inner.appendChild(row1);
+
+    var row2 = document.createElement('div');
+    row2.className = 'photo-viewer-row';
+    var mainBtn = document.createElement('button');
+    mainBtn.type = 'button';
+    mainBtn.className = 'photo-btn' + (isMain ? ' is-main' : '');
+    mainBtn.textContent = isMain ? '★ Main photo' : '★ Make main photo';
+    if (!isMain) mainBtn.addEventListener('click', function () { setMainPhoto(plant.id, p.id); });
+    row2.appendChild(mainBtn);
+
+    var confirming = confirmingPhotoDelete === p.id;
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'photo-btn danger' + (confirming ? ' is-confirming' : '');
+    del.textContent = confirming ? 'Tap again to delete' : 'Delete';
+    del.addEventListener('click', function () {
+      if (confirmingPhotoDelete === p.id) {
+        clearTimeout(confirmingPhotoTimer);
+        confirmingPhotoDelete = null;
+        deletePhoto(plant.id, p.id);
+      } else {
+        confirmingPhotoDelete = p.id;
+        clearTimeout(confirmingPhotoTimer);
+        confirmingPhotoTimer = setTimeout(function () { confirmingPhotoDelete = null; renderRoute(); }, 3000);
+        renderRoute();
+      }
+    });
+    row2.appendChild(del);
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'photo-btn close';
+    close.textContent = 'Close';
+    close.addEventListener('click', function () { viewingPhotoId = null; renderRoute(); });
+    row2.appendChild(close);
+    inner.appendChild(row2);
+
+    overlay.appendChild(inner);
+    return overlay;
+  }
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && viewingPhotoId) { viewingPhotoId = null; renderRoute(); }
+  });
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
   function renderRoute() {
     var hash = location.hash;
     var m = hash.match(/^#tree\/(.+)$/);
+    if (!m) viewingPhotoId = null;
     if (m && findPlant(m[1])) {
       renderDetail(m[1]);
     } else {
@@ -1068,7 +1450,7 @@ function syncWatch(key, localValueGetter, onRemote) {
       if (!group.length) return;
 
       var section = document.createElement('div');
-      section.className = 'category';
+      section.className = 'category has-grp ' + grpClass(cat);
       var heading = document.createElement('h2');
       heading.className = 'category-heading';
       heading.textContent = cat;
@@ -1079,7 +1461,7 @@ function syncWatch(key, localValueGetter, onRemote) {
 
       group.forEach(function (plant) {
         var card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'card has-grp ' + grpClass(plant.category);
 
         var link = document.createElement('button');
         link.type = 'button';
@@ -1166,7 +1548,7 @@ function syncWatch(key, localValueGetter, onRemote) {
     head.className = 'detail-header';
 
     var cat = document.createElement('p');
-    cat.className = 'detail-category';
+    cat.className = 'detail-category has-grp ' + grpClass(plant.category);
     cat.textContent = plant.category;
     head.appendChild(cat);
 
@@ -1191,6 +1573,8 @@ function syncWatch(key, localValueGetter, onRemote) {
     head.appendChild(renameHint);
 
     detail.appendChild(head);
+
+    detail.appendChild(buildMainPhoto(plant));
 
     var notesPanel = document.createElement('div');
     notesPanel.className = 'panel';
@@ -1219,6 +1603,8 @@ function syncWatch(key, localValueGetter, onRemote) {
     });
     notesPanel.appendChild(notesEl);
     detail.appendChild(notesPanel);
+
+    detail.appendChild(buildPhotoPanel(plant));
 
     var histPanel = document.createElement('div');
     histPanel.className = 'panel';
@@ -1425,6 +1811,9 @@ function syncWatch(key, localValueGetter, onRemote) {
     }
 
     viewEl.appendChild(detail);
+
+    var viewer = buildPhotoViewer(plant);
+    if (viewer) viewEl.appendChild(viewer);
   }
 
   function escapeHtml(s) {
@@ -1443,6 +1832,15 @@ function syncWatch(key, localValueGetter, onRemote) {
     if (ensureSingleCycleMigrated(plants)) changed = true;
     if (ensureNotesMigrated(plants)) changed = true;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+    renderRoute();
+  });
+
+  syncWatch(PHOTO_KEY, function () { return photoIndex; }, function (remote) {
+    photoIndex = remote || {};
+    localStorage.setItem(PHOTO_KEY, JSON.stringify(photoIndex));
+    // Don't redraw under someone mid-way through typing a photo note.
+    var active = document.activeElement;
+    if (active && active.tagName === 'INPUT' && active.type === 'text') return;
     renderRoute();
   });
 })();
