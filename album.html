@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Album</title>
+<style>
+  :root {
+    --surface: #eef2e8;
+    --surface-raised: #ffffff;
+    --surface-sunken: #e4e9dc;
+    --ink: #232a1e;
+    --ink-muted: #5f6a56;
+    --border: rgba(35, 42, 30, 0.14);
+    --accent: #b97a2a;
+    --accent-ink: #3a2508;
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --surface: #151a12;
+      --surface-raised: #1d2419;
+      --surface-sunken: #10140d;
+      --ink: #e8ebdf;
+      --ink-muted: #9aa48d;
+      --border: rgba(232, 235, 223, 0.14);
+      --accent: #dc9d51;
+      --accent-ink: #2a1a06;
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface: #151a12;
+    --surface-raised: #1d2419;
+    --surface-sunken: #10140d;
+    --ink: #e8ebdf;
+    --ink-muted: #9aa48d;
+    --border: rgba(232, 235, 223, 0.14);
+    --accent: #dc9d51;
+    --accent-ink: #2a1a06;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 2.25rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+  }
+  .shelf-nav {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .shelf-nav a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 2px; }
+  .shelf-nav a:hover { color: var(--accent); }
+  .shelf-nav .current { color: var(--ink); }
+
+  .masthead { display: flex; flex-direction: column; gap: 0.6rem; }
+  .kicker {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.1rem, 5vw, 2.8rem);
+    letter-spacing: -0.01em;
+  }
+  .lede { margin: 0; max-width: 36rem; color: var(--ink-muted); }
+
+  .tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .tab {
+    font-family: var(--font-display); font-size: 1rem; font-weight: 600;
+    padding: 0.55rem 1.1rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface-raised); color: var(--ink-muted);
+  }
+  .tab:hover { color: var(--ink); border-color: var(--accent); }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .panel {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .panel h2 { margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+  .panel-hint { margin: 0; font-size: 0.8rem; color: var(--ink-muted); }
+
+  .notes-editable {
+    width: 100%;
+    min-height: 8rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .notes-editable:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .notes-editable:empty::before { content: attr(data-placeholder); color: var(--ink-muted); opacity: 0.8; }
+
+  .photo-add {
+    align-self: flex-start;
+    font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    border: 1.5px dashed var(--border); background: var(--surface-sunken); color: var(--ink-muted);
+    border-radius: 0.6rem; padding: 0.8rem 1.1rem; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .photo-add:hover { color: var(--ink); border-color: var(--accent); }
+  .photo-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .photo-hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .photo-status { font-size: 0.82rem; color: var(--ink-muted); margin: 0; }
+  .empty { margin: 0; font-size: 0.9rem; color: var(--ink-muted); font-style: italic; }
+
+  .month { display: flex; flex-direction: column; gap: 0.5rem; }
+  .month h3 {
+    margin: 0.4rem 0 0; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted);
+  }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: 0.7rem; }
+  .photo-thumb {
+    background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+    display: flex; flex-direction: column; gap: 0.2rem; color: var(--ink);
+  }
+  .photo-thumb img {
+    width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 0.45rem;
+    border: 1px solid var(--border); background: var(--surface-sunken); display: block;
+  }
+  .photo-thumb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 0.45rem; }
+  .photo-thumb .photo-date { font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-muted); }
+  .photo-thumb .photo-cap {
+    font-size: 0.78rem; line-height: 1.3; overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  }
+
+  .photo-viewer {
+    position: fixed; inset: 0; z-index: 50; background: rgba(10, 12, 8, 0.86);
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .photo-viewer-inner {
+    background: var(--surface-raised); border-radius: 0.7rem; padding: 0.8rem; max-width: 46rem; width: 100%;
+    max-height: calc(100vh - 2rem); overflow-y: auto; display: flex; flex-direction: column; gap: 0.7rem;
+  }
+  .photo-viewer-inner img { width: 100%; max-height: 65vh; object-fit: contain; border-radius: 0.45rem; background: var(--surface-sunken); min-height: 8rem; }
+  .photo-viewer-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .photo-viewer-row input[type="date"], .photo-viewer-row textarea {
+    font-family: var(--font-body); font-size: 0.9rem; padding: 0.4rem 0.55rem; border-radius: 0.4rem;
+    border: 1px solid var(--border); background: var(--surface-sunken); color: var(--ink);
+  }
+  .photo-viewer-row textarea { flex: 1 1 100%; min-height: 4.5rem; resize: vertical; line-height: 1.4; }
+  .photo-btn {
+    font-family: var(--font-body); font-size: 0.82rem; font-weight: 600; padding: 0.45rem 0.8rem; border-radius: 0.5rem;
+    border: 1px solid var(--border); background: var(--surface-sunken); color: var(--ink); cursor: pointer;
+  }
+  .photo-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .photo-btn:disabled { opacity: 0.4; cursor: default; }
+  .photo-btn.danger.is-confirming { background: #b3261e; color: #fff; border-color: transparent; }
+  .photo-btn.close { margin-left: auto; }
+
+  footer { color: var(--ink-muted); font-size: 0.8rem; text-align: center; max-width: 30rem; margin: 0 auto; }
+</style>
+
+<div class="page">
+  <nav class="shelf-nav">
+    <a href="almanac.html">The Almanac</a>
+    <span>&middot;</span>
+    <a href="feed.html">The Feed</a>
+    <span>&middot;</span>
+    <a href="spray.html">The Spray</a>
+    <span>&middot;</span>
+    <span class="current">The Album</span>
+  </nav>
+
+  <header class="masthead">
+    <p class="kicker">The Orchard</p>
+    <h1>The Album</h1>
+    <p class="lede">A visual record of the garden and the indoor plants. Snap, add a note if you like, done.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab" role="tab" data-section="garden">Garden</button>
+    <button type="button" class="tab" role="tab" data-section="indoor">Indoor plants</button>
+  </div>
+
+  <div id="view"></div>
+
+  <footer>Synced across your devices automatically.</footer>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+var firebaseConfig = {
+  apiKey: "AIzaSyDoqVC7vjA2deg9JZVLdpnl6HX9N9e00f0",
+  authDomain: "orchard-c3638.firebaseapp.com",
+  projectId: "orchard-c3638",
+  storageBucket: "orchard-c3638.firebasestorage.app",
+  messagingSenderId: "505646311271",
+  appId: "1:505646311271:web:f5d225f1e7d4e3061071c2"
+};
+var firebaseApp = initializeApp(firebaseConfig);
+var db = getFirestore(firebaseApp);
+var SYNC_ROOT = 'orchard-7f3k9m2x';
+var syncTimers = {};
+var syncReady = {};
+var syncQueued = {};
+
+// Same sync rules as The Feed: nothing goes up until the cloud has answered
+// once for that key, so a device with no data of its own can never push an
+// empty album over the real one.
+function syncPush(key, value) {
+  if (!syncReady[key]) { syncQueued[key] = value; return; }
+  clearTimeout(syncTimers[key]);
+  syncTimers[key] = setTimeout(function () {
+    setDoc(doc(db, SYNC_ROOT, key), { value: value, updatedAt: Date.now() });
+  }, 600);
+}
+
+function syncWatch(key, localValueGetter, onRemote) {
+  onSnapshot(doc(db, SYNC_ROOT, key), function (snap) {
+    if (snap.metadata.hasPendingWrites) return;
+    var first = !syncReady[key];
+    if (first) {
+      try {
+        localStorage.setItem(key + '-presync-backup', JSON.stringify(localValueGetter()));
+      } catch (e) {}
+      syncReady[key] = true;
+    }
+    if (snap.exists()) {
+      if (first) delete syncQueued[key];
+      onRemote(snap.data().value);
+    } else if (first) {
+      var seed = syncQueued[key] !== undefined ? syncQueued[key] : localValueGetter();
+      delete syncQueued[key];
+      syncPush(key, seed);
+    }
+  });
+}
+
+(function () {
+  // The album: two sections, each with one notes box and one running list of
+  // dated photos. The list (ids, dates, notes) syncs under ALBUM_KEY; each
+  // picture is its own cloud document 'photo-<id>', fetched only when shown,
+  // exactly like the tree photos in The Feed.
+  var ALBUM_KEY = 'orchard-album-v1';
+  var SECTIONS = {
+    garden: { label: 'Garden', notesHint: 'General notes about the garden: what\'s flowering, what needs doing, what worked.' },
+    indoor: { label: 'Indoor plants', notesHint: 'General notes about the indoor plants: repotting, watering, who\'s sulking.' }
+  };
+
+  function blankAlbum() {
+    return { garden: { notes: '', list: [] }, indoor: { notes: '', list: [] } };
+  }
+  function normalise(a) {
+    if (!a || typeof a !== 'object') a = {};
+    Object.keys(SECTIONS).forEach(function (k) {
+      if (!a[k] || typeof a[k] !== 'object') a[k] = { notes: '', list: [] };
+      if (typeof a[k].notes !== 'string') a[k].notes = '';
+      if (!Array.isArray(a[k].list)) a[k].list = [];
+    });
+    return a;
+  }
+
+  var album = blankAlbum();
+  try { album = normalise(JSON.parse(localStorage.getItem(ALBUM_KEY) || 'null')); } catch (e) { album = blankAlbum(); }
+
+  var photoCache = {};
+  var photoLoading = {};
+  var viewingPhotoId = null;
+  var confirmingDelete = null;
+  var confirmingTimer = null;
+  var uploading = 0;
+
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function isoOf(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+
+  function currentSection() {
+    var m = location.hash.match(/^#(garden|indoor)$/);
+    return m ? m[1] : 'garden';
+  }
+
+  function saveAlbum() {
+    try { localStorage.setItem(ALBUM_KEY, JSON.stringify(album)); } catch (e) {}
+    syncPush(ALBUM_KEY, album);
+  }
+
+  function findPhoto(section, id) {
+    var list = album[section].list;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+
+  function sortedPhotos(section) {
+    return album[section].list.slice().sort(function (a, b) {
+      return (b.date || '').localeCompare(a.date || '');
+    });
+  }
+
+  function fillImages(id) {
+    var imgs = document.querySelectorAll('img[data-photo-id="' + id + '"]');
+    for (var i = 0; i < imgs.length; i++) imgs[i].src = photoCache[id];
+  }
+  function loadPhotoData(id) {
+    if (photoCache[id] || photoLoading[id]) return;
+    photoLoading[id] = true;
+    getDoc(doc(db, SYNC_ROOT, 'photo-' + id)).then(function (snap) {
+      delete photoLoading[id];
+      if (snap.exists()) { photoCache[id] = snap.data().value; fillImages(id); }
+    }).catch(function () { delete photoLoading[id]; });
+  }
+  function photoImg(id) {
+    var img = document.createElement('img');
+    img.alt = '';
+    img.loading = 'lazy';
+    img.setAttribute('data-photo-id', id);
+    if (photoCache[id]) img.src = photoCache[id]; else loadPhotoData(id);
+    return img;
+  }
+
+  // Phone photos are several megabytes; shrink and JPEG-compress until it
+  // fits comfortably in one cloud document (same as The Feed).
+  function compressImage(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var maxEdge = 1400, quality = 0.75, out = null;
+        for (var attempt = 0; attempt < 6; attempt++) {
+          var scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.naturalWidth * scale);
+          canvas.height = Math.round(img.naturalHeight * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          out = canvas.toDataURL('image/jpeg', quality);
+          if (out.length < 850000) break;
+          maxEdge = Math.round(maxEdge * 0.8);
+          quality = Math.max(0.5, quality - 0.08);
+        }
+        resolve(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('That file could not be read as a picture.')); };
+      img.src = url;
+    });
+  }
+
+  // A photo picked from the gallery usually carries the day it was taken as
+  // its file date, so older photos land on the right day. Anything odd (in
+  // the future, or before 2000) falls back to today. The date can always be
+  // changed in the viewer.
+  function photoDate(file) {
+    var now = new Date();
+    if (file && file.lastModified) {
+      var d = new Date(file.lastModified);
+      if (!isNaN(d) && d <= now && d.getFullYear() >= 2000) return isoOf(d);
+    }
+    return isoOf(now);
+  }
+
+  function addPhotos(section, files) {
+    files = Array.prototype.slice.call(files || []);
+    if (!files.length) return;
+    uploading += files.length;
+    render();
+    var lastId = null;
+    var chain = Promise.resolve();
+    var failures = 0;
+    files.forEach(function (file) {
+      chain = chain.then(function () {
+        return compressImage(file).then(function (dataUrl) {
+          var id = uid() + uid();
+          photoCache[id] = dataUrl;
+          return setDoc(doc(db, SYNC_ROOT, 'photo-' + id), { value: dataUrl, album: section, updatedAt: Date.now() }).then(function () {
+            album[section].list.push({ id: id, date: photoDate(file), caption: '' });
+            saveAlbum();
+            lastId = id;
+          });
+        }).catch(function () { failures++; }).then(function () {
+          uploading--;
+          render();
+        });
+      });
+    });
+    chain.then(function () {
+      if (files.length === 1 && lastId) { viewingPhotoId = lastId; render(); }
+      if (failures) alert('Sorry, ' + failures + (failures === 1 ? ' photo' : ' photos') + ' didn\'t save. Try again?');
+    });
+  }
+
+  function setPhotoField(section, id, field, value) {
+    var p = findPhoto(section, id);
+    if (!p || p[field] === value) return;
+    p[field] = value;
+    saveAlbum();
+  }
+
+  function deletePhoto(section, id) {
+    album[section].list = album[section].list.filter(function (p) { return p.id !== id; });
+    saveAlbum();
+    deleteDoc(doc(db, SYNC_ROOT, 'photo-' + id)).catch(function () {});
+    delete photoCache[id];
+    viewingPhotoId = null;
+    render();
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function monthLabel(iso) {
+    var d = new Date((iso || '').slice(0, 7) + '-01T00:00:00');
+    if (isNaN(d)) return 'Undated';
+    return d.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
+  }
+
+  function makePicker(section) {
+    var wrap = document.createElement('label');
+    wrap.className = 'photo-add';
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    input.className = 'photo-hidden-input';
+    input.addEventListener('change', function () {
+      if (input.files && input.files.length) addPhotos(section, input.files);
+    });
+    wrap.appendChild(input);
+    wrap.appendChild(document.createTextNode('📷  Add photos'));
+    wrap.tabIndex = 0;
+    wrap.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); input.click(); }
+    });
+    return wrap;
+  }
+
+  function buildNotes(section) {
+    var panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = '<h2>Notes</h2><p class="panel-hint"></p>';
+    panel.querySelector('.panel-hint').textContent = SECTIONS[section].notesHint + ' Select text and press Ctrl/Cmd+B to bold it.';
+    var el = document.createElement('div');
+    el.className = 'notes-editable';
+    el.id = 'notes-editor';
+    el.contentEditable = 'true';
+    el.setAttribute('data-placeholder', 'Write whatever you like here...');
+    el.innerHTML = album[section].notes || '';
+    el.addEventListener('input', function () {
+      album[section].notes = el.innerHTML;
+      saveAlbum();
+    });
+    el.addEventListener('keydown', function (ev) {
+      var mod = ev.metaKey || ev.ctrlKey;
+      if (mod && (ev.key === 'b' || ev.key === 'B')) {
+        ev.preventDefault();
+        document.execCommand('bold');
+        album[section].notes = el.innerHTML;
+        saveAlbum();
+      }
+    });
+    el.addEventListener('paste', function (ev) {
+      ev.preventDefault();
+      var text = (ev.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+    panel.appendChild(el);
+    return panel;
+  }
+
+  function buildPhotos(section) {
+    var panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = '<h2>Photos</h2><p class="panel-hint">Newest first. You can add several at once. Tap a photo to see it big, or to change its date or note.</p>';
+    panel.appendChild(makePicker(section));
+    if (uploading > 0) {
+      var st = document.createElement('p');
+      st.className = 'photo-status';
+      st.textContent = 'Saving ' + uploading + (uploading === 1 ? ' photo…' : ' photos…');
+      panel.appendChild(st);
+    }
+    var list = sortedPhotos(section);
+    if (!list.length && !uploading) {
+      var empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = 'No photos yet.';
+      panel.appendChild(empty);
+    }
+    var currentMonth = null, grid = null;
+    list.forEach(function (p) {
+      var label = monthLabel(p.date);
+      if (label !== currentMonth) {
+        currentMonth = label;
+        var group = document.createElement('div');
+        group.className = 'month';
+        var h = document.createElement('h3');
+        h.textContent = label;
+        group.appendChild(h);
+        grid = document.createElement('div');
+        grid.className = 'photo-grid';
+        group.appendChild(grid);
+        panel.appendChild(group);
+      }
+      var t = document.createElement('button');
+      t.type = 'button';
+      t.className = 'photo-thumb';
+      t.appendChild(photoImg(p.id));
+      var d = document.createElement('span');
+      d.className = 'photo-date';
+      d.textContent = formatDate(p.date);
+      t.appendChild(d);
+      if (p.caption) {
+        var c = document.createElement('span');
+        c.className = 'photo-cap';
+        c.textContent = p.caption;
+        t.appendChild(c);
+      }
+      t.addEventListener('click', function () { viewingPhotoId = p.id; render(); });
+      grid.appendChild(t);
+    });
+    return panel;
+  }
+
+  function buildViewer(section) {
+    var p = viewingPhotoId ? findPhoto(section, viewingPhotoId) : null;
+    if (!p) { viewingPhotoId = null; return null; }
+    var list = sortedPhotos(section);
+    var idx = list.findIndex(function (x) { return x.id === p.id; });
+
+    var overlay = document.createElement('div');
+    overlay.className = 'photo-viewer';
+    overlay.addEventListener('click', function (ev) {
+      if (ev.target === overlay) { viewingPhotoId = null; render(); }
+    });
+    var inner = document.createElement('div');
+    inner.className = 'photo-viewer-inner';
+    inner.appendChild(photoImg(p.id));
+
+    var row1 = document.createElement('div');
+    row1.className = 'photo-viewer-row';
+    var date = document.createElement('input');
+    date.type = 'date';
+    date.value = p.date || '';
+    date.addEventListener('change', function () { if (date.value) setPhotoField(section, p.id, 'date', date.value); });
+    row1.appendChild(date);
+    var cap = document.createElement('textarea');
+    cap.placeholder = 'Add a note (e.g. first flowers on the salvia)';
+    cap.value = p.caption || '';
+    cap.addEventListener('blur', function () { setPhotoField(section, p.id, 'caption', cap.value.trim()); });
+    row1.appendChild(cap);
+    inner.appendChild(row1);
+
+    var row2 = document.createElement('div');
+    row2.className = 'photo-viewer-row';
+    function step(delta) {
+      setPhotoField(section, p.id, 'caption', cap.value.trim());
+      if (date.value) setPhotoField(section, p.id, 'date', date.value);
+      var next = list[idx + delta];
+      if (next) { viewingPhotoId = next.id; render(); }
+    }
+    var newer = document.createElement('button');
+    newer.type = 'button';
+    newer.className = 'photo-btn';
+    newer.textContent = '← Newer';
+    newer.disabled = idx <= 0;
+    newer.addEventListener('click', function () { step(-1); });
+    row2.appendChild(newer);
+    var older = document.createElement('button');
+    older.type = 'button';
+    older.className = 'photo-btn';
+    older.textContent = 'Older →';
+    older.disabled = idx >= list.length - 1;
+    older.addEventListener('click', function () { step(1); });
+    row2.appendChild(older);
+
+    var confirming = confirmingDelete === p.id;
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'photo-btn danger' + (confirming ? ' is-confirming' : '');
+    del.textContent = confirming ? 'Tap again to delete' : 'Delete';
+    del.addEventListener('click', function () {
+      if (confirmingDelete === p.id) {
+        clearTimeout(confirmingTimer);
+        confirmingDelete = null;
+        deletePhoto(section, p.id);
+      } else {
+        confirmingDelete = p.id;
+        clearTimeout(confirmingTimer);
+        confirmingTimer = setTimeout(function () { confirmingDelete = null; render(); }, 3000);
+        render();
+      }
+    });
+    row2.appendChild(del);
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'photo-btn close';
+    close.textContent = 'Close';
+    close.addEventListener('click', function () {
+      setPhotoField(section, p.id, 'caption', cap.value.trim());
+      viewingPhotoId = null;
+      render();
+    });
+    row2.appendChild(close);
+    inner.appendChild(row2);
+
+    overlay.appendChild(inner);
+    return overlay;
+  }
+
+  function render() {
+    var section = currentSection();
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].setAttribute('aria-selected', tabs[i].getAttribute('data-section') === section ? 'true' : 'false');
+    }
+    var view = document.getElementById('view');
+    view.innerHTML = '';
+    var wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.flexDirection = 'column';
+    wrap.style.gap = '1.2rem';
+    wrap.appendChild(buildPhotos(section));
+    wrap.appendChild(buildNotes(section));
+    view.appendChild(wrap);
+    var viewer = buildViewer(section);
+    if (viewer) view.appendChild(viewer);
+  }
+
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener('click', function (ev) {
+      var s = ev.currentTarget.getAttribute('data-section');
+      viewingPhotoId = null;
+      if (location.hash !== '#' + s) location.hash = '#' + s; else render();
+    });
+  }
+  window.addEventListener('hashchange', function () { viewingPhotoId = null; render(); });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && viewingPhotoId) { viewingPhotoId = null; render(); }
+  });
+
+  render();
+
+  syncWatch(ALBUM_KEY, function () { return album; }, function (remote) {
+    album = normalise(remote);
+    try { localStorage.setItem(ALBUM_KEY, JSON.stringify(album)); } catch (e) {}
+    // Don't yank the page out from under someone mid-typing: if the notes box
+    // or a photo note has focus, the data is updated but the screen waits.
+    var active = document.activeElement;
+    if (active && (active.id === 'notes-editor' || (active.closest && active.closest('.photo-viewer')))) return;
+    render();
+  });
+})();
+</script>
