@@ -395,6 +395,33 @@
   }
   .history-row:last-child { border-bottom: none; }
 
+  /* "Last feed" line on each tree card (list view) */
+  .last-feed {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: -0.25rem;
+  }
+  .last-feed strong { font-weight: 600; color: var(--ink); }
+
+  /* Feed toggle on event rows: like the main-photo star, tap to mark */
+  button.event-feed-toggle {
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  button.event-feed-toggle:hover { color: var(--ink); border-color: var(--ink-muted); }
+  button.event-feed-toggle.is-feed { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  button.event-feed-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
   button.history-date {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
@@ -1088,6 +1115,42 @@ function syncWatch(key, localValueGetter, onRemote) {
     renderRoute();
   }
 
+  function toggleEventFeed(plantId, eventId) {
+    var plant = findPlant(plantId);
+    var ev = (plant.events || []).filter(function (e) { return e.id === eventId; })[0];
+    if (ev) {
+      ev.feed = !ev.feed;
+      savePlants(plants);
+      renderRoute();
+    }
+  }
+
+  // The most recent feed for a plant: any seasonal tick, plus any event
+  // she has marked as a feed. Plain events (pruning, boron, traps...) don't
+  // count unless she ticks them.
+  function lastFeed(plant) {
+    var best = null;
+    Object.keys(plant.feeds || {}).forEach(function (key) {
+      plant.feeds[key].forEach(function (rec) {
+        if (rec.date && (!best || rec.date > best.date)) best = { date: rec.date, text: rec.note ? rec.note : feedLabel(key) };
+      });
+    });
+    (plant.events || []).forEach(function (ev) {
+      if (ev.feed && ev.date && (!best || ev.date > best.date)) best = { date: ev.date, text: ev.note || 'Feed' };
+    });
+    return best;
+  }
+
+  function timeAgo(iso) {
+    var days = Math.round((new Date(todayISO() + 'T00:00:00') - new Date(iso + 'T00:00:00')) / 86400000);
+    if (days <= 0) return 'today';
+    if (days === 1) return 'yesterday';
+    if (days < 14) return days + ' days ago';
+    if (days < 63) return Math.round(days / 7) + ' weeks ago';
+    var months = Math.round(days / 30.4);
+    return months + (months === 1 ? ' month ago' : ' months ago');
+  }
+
   function removePlant(plantId) {
     plants = plants.filter(function (p) { return p.id !== plantId; });
     savePlants(plants);
@@ -1472,6 +1535,16 @@ function syncWatch(key, localValueGetter, onRemote) {
         link.addEventListener('click', function () { location.hash = '#tree/' + plant.id; });
         card.appendChild(link);
 
+        var lf = lastFeed(plant);
+        if (lf) {
+          var lfEl = document.createElement('div');
+          lfEl.className = 'last-feed';
+          // Time first, so a long note gets cut off rather than the "how long ago".
+          lfEl.innerHTML = 'Last feed <strong>' + timeAgo(lf.date) + '</strong> (' + fmtDateShort(lf.date) + ') · ' + escapeHtml(lf.text.replace(/\s+/g, ' ').trim());
+          lfEl.title = lf.text;
+          card.appendChild(lfEl);
+        }
+
         var row = document.createElement('div');
         row.className = 'feed-row';
         FEEDS.forEach(function (f) {
@@ -1626,7 +1699,7 @@ function syncWatch(key, localValueGetter, onRemote) {
       });
     });
     (plant.events || []).forEach(function (ev) {
-      entries.push({ type: 'event', id: ev.id, date: ev.date, note: ev.note });
+      entries.push({ type: 'event', id: ev.id, date: ev.date, note: ev.note, feed: !!ev.feed });
     });
     entries.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
 
@@ -1715,6 +1788,16 @@ function syncWatch(key, localValueGetter, onRemote) {
             renderRoute();
           });
           row.appendChild(body);
+        }
+
+        if (isEvent) {
+          var ft = document.createElement('button');
+          ft.type = 'button';
+          ft.className = 'event-feed-toggle' + (e.feed ? ' is-feed' : '');
+          ft.textContent = e.feed ? '🌱 Feed' : '+ Feed';
+          ft.title = e.feed ? 'Counts as a feed (shows as "Last feed"). Tap to unmark.' : 'Mark as a feed, so it shows as "Last feed"';
+          ft.addEventListener('click', function () { toggleEventFeed(plant.id, e.id); });
+          row.appendChild(ft);
         }
 
         var isConfirmingDel = confirmingDelete === eKey;
