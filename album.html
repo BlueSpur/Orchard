@@ -185,6 +185,25 @@
   .photo-btn:disabled { opacity: 0.4; cursor: default; }
   .photo-btn.danger.is-confirming { background: #b3261e; color: #fff; border-color: transparent; }
   .photo-btn.close { margin-left: auto; }
+  .photo-btn.is-main { background: var(--accent); color: var(--surface); border-color: transparent; cursor: default; }
+  .photo-viewer-row select { font: inherit; font-size: 0.85rem; padding: 0.35rem 0.5rem; border-radius: 0.4rem; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+
+  /* Indoor plants: one card per plant, main photo on top */
+  .plant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 0.8rem; }
+  .plant-card { display: flex; flex-direction: column; gap: 0.35rem; background: none; border: none; padding: 0; text-align: left; cursor: pointer; color: var(--ink); font: inherit; }
+  .plant-card-img { aspect-ratio: 1 / 1; width: 100%; border-radius: 0.5rem; overflow: hidden; background: var(--surface-sunken, rgba(127,127,127,0.12)); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+  .plant-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .plant-card-name { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; line-height: 1.25; }
+  .plant-card-count { font-size: 0.72rem; color: var(--ink-muted); }
+  .plant-card:hover .plant-card-name { color: var(--accent); }
+  .plant-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 0.5rem; }
+  .plant-card.is-new .plant-card-img { border: 2px dashed var(--border); background: none; color: var(--ink-muted); font-size: 1.6rem; }
+  .plant-back { background: none; border: none; padding: 0; color: var(--ink-muted); font: inherit; font-size: 0.85rem; cursor: pointer; text-align: left; }
+  .plant-back:hover { color: var(--accent); }
+  .plant-name-input { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; border: none; border-bottom: 1px dashed var(--border); background: none; color: var(--ink); padding: 0.1rem 0; width: 100%; }
+  .plant-name-input:focus-visible { outline: none; border-bottom-color: var(--accent); }
+  .plant-main-photo img { width: 100%; max-height: 55vh; object-fit: contain; border-radius: 0.5rem; display: block; background: var(--surface-sunken, rgba(127,127,127,0.12)); }
+  .photo-thumb .photo-star { font-size: 0.7rem; color: var(--accent); font-weight: 700; }
 
   footer { color: var(--ink-muted); font-size: 0.8rem; text-align: center; max-width: 30rem; margin: 0 auto; }
 </style>
@@ -279,8 +298,32 @@ function syncWatch(key, localValueGetter, onRemote) {
   };
 
   function blankAlbum() {
-    return { garden: { notes: '', list: [] }, indoor: { notes: '', list: [] } };
+    return { garden: { notes: '', list: [] }, indoor: { notes: '', list: [], plants: [] } };
   }
+
+  // Indoor plants are grouped: indoor.plants = [{id, name, main, notes}],
+  // and each indoor photo carries plant: <id>. The first time a device sees
+  // an album with no plants list, every existing indoor photo becomes its
+  // own plant. Ids and names are worked out from the photos themselves, so
+  // every device that does this gets exactly the same result.
+  var FIRST_NAMES = {
+    lng8kp0q9x9ykbpo: 'Ice Queen pothos',
+    r1usjytfoqojafqy: 'Philodendron Pink Princess',
+    '4zcmwka0pelwfp28': 'Alocasia',
+    w67x9ki0w9vpik7f: 'Variegated pothos',
+    l1gcrrpwgoocykws: 'Variegated weeping ficus',
+    jnekoonnrinz625u: 'Tricolour stromanthe',
+    '7boyrnfmfiw35c3x': 'Brazil philodendron',
+    hx7a93r8pmk3o6j4: 'Roxanne\'s pothos?',
+    clux499tjb9ko0lg: 'Layla\'s ficus',
+    ep2plac2smn04xw9: 'Rubber plant (Ruby?)'
+  };
+  function guessName(p) {
+    if (FIRST_NAMES[p.id]) return FIRST_NAMES[p.id];
+    var c = (p.caption || '').split(/[.,!?]/)[0].trim().split(/\s+/).slice(0, 3).join(' ');
+    return c || 'Unnamed plant';
+  }
+  var migratedJustNow = false;
   function normalise(a) {
     if (!a || typeof a !== 'object') a = {};
     Object.keys(SECTIONS).forEach(function (k) {
@@ -288,11 +331,22 @@ function syncWatch(key, localValueGetter, onRemote) {
       if (typeof a[k].notes !== 'string') a[k].notes = '';
       if (!Array.isArray(a[k].list)) a[k].list = [];
     });
+    if (!Array.isArray(a.indoor.plants)) {
+      a.indoor.plants = [];
+      a.indoor.list.forEach(function (p) {
+        if (p.plant) return;
+        var pid = 'pl-' + p.id;
+        a.indoor.plants.push({ id: pid, name: guessName(p), main: p.id, notes: '' });
+        p.plant = pid;
+      });
+      if (a.indoor.list.length) migratedJustNow = true;
+    }
     return a;
   }
 
   var album = blankAlbum();
   try { album = normalise(JSON.parse(localStorage.getItem(ALBUM_KEY) || 'null')); } catch (e) { album = blankAlbum(); }
+  migratedJustNow = false; // a local-only migration is redone on the cloud copy below
 
   var photoCache = {};
   var photoLoading = {};
@@ -306,8 +360,27 @@ function syncWatch(key, localValueGetter, onRemote) {
   function isoOf(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 
   function currentSection() {
-    var m = location.hash.match(/^#(garden|indoor)$/);
+    var m = location.hash.match(/^#(garden|indoor)(?:\/.*)?$/);
     return m ? m[1] : 'garden';
+  }
+  function currentPlantId() {
+    var m = location.hash.match(/^#indoor\/(.+)$/);
+    if (!m) return null;
+    var id = decodeURIComponent(m[1]);
+    return findPlant(id) ? id : null;
+  }
+  function findPlant(id) {
+    var ps = album.indoor.plants || [];
+    for (var i = 0; i < ps.length; i++) if (ps[i].id === id) return ps[i];
+    return null;
+  }
+  function plantPhotos(plantId) {
+    return sortedPhotos('indoor').filter(function (p) { return p.plant === plantId; });
+  }
+  function plantMain(plant) {
+    var list = plantPhotos(plant.id);
+    if (plant.main && list.some(function (p) { return p.id === plant.main; })) return plant.main;
+    return list.length ? list[list.length - 1].id : null;
   }
 
   function saveAlbum() {
@@ -388,7 +461,7 @@ function syncWatch(key, localValueGetter, onRemote) {
     return isoOf(now);
   }
 
-  function addPhotos(section, files) {
+  function addPhotos(section, files, plantId) {
     files = Array.prototype.slice.call(files || []);
     if (!files.length) return;
     uploading += files.length;
@@ -402,7 +475,13 @@ function syncWatch(key, localValueGetter, onRemote) {
           var id = uid() + uid();
           photoCache[id] = dataUrl;
           return setDoc(doc(db, SYNC_ROOT, 'photo-' + id), { value: dataUrl, album: section, updatedAt: Date.now() }).then(function () {
-            album[section].list.push({ id: id, date: photoDate(file), caption: '' });
+            var rec = { id: id, date: photoDate(file), caption: '' };
+            if (plantId) {
+              rec.plant = plantId;
+              var pl = findPlant(plantId);
+              if (pl && !pl.main) pl.main = id;
+            }
+            album[section].list.push(rec);
             saveAlbum();
             lastId = id;
           });
@@ -427,6 +506,7 @@ function syncWatch(key, localValueGetter, onRemote) {
 
   function deletePhoto(section, id) {
     album[section].list = album[section].list.filter(function (p) { return p.id !== id; });
+    (album.indoor.plants || []).forEach(function (pl) { if (pl.main === id) pl.main = null; });
     saveAlbum();
     deleteDoc(doc(db, SYNC_ROOT, 'photo-' + id)).catch(function () {});
     delete photoCache[id];
@@ -446,7 +526,7 @@ function syncWatch(key, localValueGetter, onRemote) {
     return d.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
   }
 
-  function makePicker(section) {
+  function makePicker(section, plantId) {
     var wrap = document.createElement('label');
     wrap.className = 'photo-add';
     var input = document.createElement('input');
@@ -455,7 +535,7 @@ function syncWatch(key, localValueGetter, onRemote) {
     input.multiple = true;
     input.className = 'photo-hidden-input';
     input.addEventListener('change', function () {
-      if (input.files && input.files.length) addPhotos(section, input.files);
+      if (input.files && input.files.length) addPhotos(section, input.files, plantId);
     });
     wrap.appendChild(input);
     wrap.appendChild(document.createTextNode('📷  Add photos'));
@@ -466,19 +546,20 @@ function syncWatch(key, localValueGetter, onRemote) {
     return wrap;
   }
 
-  function buildNotes(section) {
+  function buildNotes(section, plant) {
+    var target = plant || album[section];
     var panel = document.createElement('div');
     panel.className = 'panel';
     panel.innerHTML = '<h2>Notes</h2><p class="panel-hint"></p>';
-    panel.querySelector('.panel-hint').textContent = SECTIONS[section].notesHint + ' Select text and press Ctrl/Cmd+B to bold it.';
+    panel.querySelector('.panel-hint').textContent = (plant ? 'Anything worth remembering about this one.' : SECTIONS[section].notesHint) + ' Select text and press Ctrl/Cmd+B to bold it.';
     var el = document.createElement('div');
     el.className = 'notes-editable';
     el.id = 'notes-editor';
     el.contentEditable = 'true';
     el.setAttribute('data-placeholder', 'Write whatever you like here...');
-    el.innerHTML = album[section].notes || '';
+    el.innerHTML = target.notes || '';
     el.addEventListener('input', function () {
-      album[section].notes = el.innerHTML;
+      target.notes = el.innerHTML;
       saveAlbum();
     });
     el.addEventListener('keydown', function (ev) {
@@ -486,7 +567,7 @@ function syncWatch(key, localValueGetter, onRemote) {
       if (mod && (ev.key === 'b' || ev.key === 'B')) {
         ev.preventDefault();
         document.execCommand('bold');
-        album[section].notes = el.innerHTML;
+        target.notes = el.innerHTML;
         saveAlbum();
       }
     });
@@ -555,7 +636,8 @@ function syncWatch(key, localValueGetter, onRemote) {
   function buildViewer(section) {
     var p = viewingPhotoId ? findPhoto(section, viewingPhotoId) : null;
     if (!p) { viewingPhotoId = null; return null; }
-    var list = sortedPhotos(section);
+    var plantId = section === 'indoor' ? currentPlantId() : null;
+    var list = plantId ? plantPhotos(plantId) : sortedPhotos(section);
     var idx = list.findIndex(function (x) { return x.id === p.id; });
 
     var overlay = document.createElement('div');
@@ -635,8 +717,216 @@ function syncWatch(key, localValueGetter, onRemote) {
     row2.appendChild(close);
     inner.appendChild(row2);
 
+    if (section === 'indoor') {
+      var row3 = document.createElement('div');
+      row3.className = 'photo-viewer-row';
+      var pl = p.plant ? findPlant(p.plant) : null;
+      if (pl) {
+        var isMain = plantMain(pl) === p.id;
+        var mainBtn = document.createElement('button');
+        mainBtn.type = 'button';
+        mainBtn.className = 'photo-btn' + (isMain ? ' is-main' : '');
+        mainBtn.textContent = isMain ? '★ Main photo' : '★ Make main photo';
+        mainBtn.addEventListener('click', function () {
+          if (isMain) return;
+          pl.main = p.id; saveAlbum(); render();
+        });
+        row3.appendChild(mainBtn);
+      }
+      var mv = document.createElement('select');
+      mv.setAttribute('aria-label', 'Move this photo to another plant');
+      var o0 = document.createElement('option');
+      o0.value = ''; o0.textContent = 'Move to…';
+      mv.appendChild(o0);
+      (album.indoor.plants || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (other) {
+        if (other.id === p.plant) return;
+        var o = document.createElement('option');
+        o.value = other.id; o.textContent = other.name;
+        mv.appendChild(o);
+      });
+      mv.addEventListener('change', function () {
+        if (!mv.value) return;
+        var from = p.plant ? findPlant(p.plant) : null;
+        if (from && from.main === p.id) from.main = null;
+        p.plant = mv.value;
+        var to = findPlant(mv.value);
+        if (to && !to.main) to.main = p.id;
+        saveAlbum();
+        viewingPhotoId = null;
+        render();
+      });
+      row3.appendChild(mv);
+      inner.appendChild(row3);
+    }
+
     overlay.appendChild(inner);
     return overlay;
+  }
+
+  var confirmingPlantDelete = null;
+
+  function newPlant() {
+    var name = prompt('What\'s the plant called?');
+    if (!name || !name.trim()) return;
+    var id = 'pl-' + uid() + uid();
+    album.indoor.plants.push({ id: id, name: name.trim(), main: null, notes: '' });
+    saveAlbum();
+    location.hash = '#indoor/' + encodeURIComponent(id);
+  }
+
+  function buildPlantGrid(wrap) {
+    var panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = '<h2>Indoor plants</h2><p class="panel-hint">Tap a plant for its photos and notes. Use the empty box to add a new one.</p>';
+    var grid = document.createElement('div');
+    grid.className = 'plant-grid';
+    var plants = (album.indoor.plants || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+    plants.forEach(function (pl) {
+      var card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'plant-card';
+      var box = document.createElement('div');
+      box.className = 'plant-card-img';
+      var mainId = plantMain(pl);
+      if (mainId) box.appendChild(photoImg(mainId)); else box.textContent = '🌿';
+      card.appendChild(box);
+      var nm = document.createElement('span');
+      nm.className = 'plant-card-name';
+      nm.textContent = pl.name;
+      card.appendChild(nm);
+      var n = plantPhotos(pl.id).length;
+      var ct = document.createElement('span');
+      ct.className = 'plant-card-count';
+      ct.textContent = n ? n + (n === 1 ? ' photo' : ' photos') : 'no photos yet';
+      card.appendChild(ct);
+      card.addEventListener('click', function () { location.hash = '#indoor/' + encodeURIComponent(pl.id); });
+      grid.appendChild(card);
+    });
+    var add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'plant-card is-new';
+    add.innerHTML = '<div class="plant-card-img">+</div><span class="plant-card-name">New plant</span>';
+    add.addEventListener('click', newPlant);
+    grid.appendChild(add);
+    panel.appendChild(grid);
+    wrap.appendChild(panel);
+
+    // Photos not in any plant (e.g. a plant was deleted) wait here.
+    var loose = sortedPhotos('indoor').filter(function (p) { return !p.plant || !findPlant(p.plant); });
+    if (loose.length) {
+      var lp = document.createElement('div');
+      lp.className = 'panel';
+      lp.innerHTML = '<h2>Unsorted photos</h2><p class="panel-hint">Open one and use “Move to…” to put it with its plant.</p>';
+      var lg = document.createElement('div');
+      lg.className = 'photo-grid';
+      loose.forEach(function (p) { lg.appendChild(thumb(p, false)); });
+      lp.appendChild(lg);
+      wrap.appendChild(lp);
+    }
+    if (album.indoor.notes) wrap.appendChild(buildNotes('indoor'));
+  }
+
+  function thumb(p, isMain) {
+    var t = document.createElement('button');
+    t.type = 'button';
+    t.className = 'photo-thumb';
+    t.appendChild(photoImg(p.id));
+    var d = document.createElement('span');
+    d.className = 'photo-date';
+    d.textContent = formatDate(p.date);
+    if (isMain) {
+      var st = document.createElement('span');
+      st.className = 'photo-star';
+      st.textContent = ' ★ main';
+      d.appendChild(st);
+    }
+    t.appendChild(d);
+    if (p.caption) {
+      var c = document.createElement('span');
+      c.className = 'photo-cap';
+      c.textContent = p.caption;
+      t.appendChild(c);
+    }
+    t.addEventListener('click', function () { viewingPhotoId = p.id; render(); });
+    return t;
+  }
+
+  function buildPlantPage(wrap, pl) {
+    var back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'plant-back';
+    back.textContent = '← All indoor plants';
+    back.addEventListener('click', function () { location.hash = '#indoor'; });
+    wrap.appendChild(back);
+
+    var nameIn = document.createElement('input');
+    nameIn.className = 'plant-name-input';
+    nameIn.value = pl.name;
+    nameIn.setAttribute('aria-label', 'Plant name (tap to rename)');
+    nameIn.addEventListener('blur', function () {
+      var v = nameIn.value.trim();
+      if (v && v !== pl.name) { pl.name = v; saveAlbum(); }
+      else nameIn.value = pl.name;
+    });
+    nameIn.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); nameIn.blur(); } });
+    wrap.appendChild(nameIn);
+
+    var mainId = plantMain(pl);
+    if (mainId) {
+      var fig = document.createElement('div');
+      fig.className = 'plant-main-photo';
+      fig.appendChild(photoImg(mainId));
+      fig.style.cursor = 'pointer';
+      fig.addEventListener('click', function () { viewingPhotoId = mainId; render(); });
+      wrap.appendChild(fig);
+    }
+
+    var panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = '<h2>Photos</h2><p class="panel-hint">Tap a photo to see it big, make it the main photo, move it, or change its note.</p>';
+    panel.appendChild(makePicker('indoor', pl.id));
+    if (uploading > 0) {
+      var stp = document.createElement('p');
+      stp.className = 'photo-status';
+      stp.textContent = 'Saving ' + uploading + (uploading === 1 ? ' photo…' : ' photos…');
+      panel.appendChild(stp);
+    }
+    var list = plantPhotos(pl.id);
+    if (!list.length && !uploading) {
+      var empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = 'No photos yet.';
+      panel.appendChild(empty);
+    } else {
+      var g = document.createElement('div');
+      g.className = 'photo-grid';
+      list.forEach(function (p) { g.appendChild(thumb(p, p.id === mainId)); });
+      panel.appendChild(g);
+    }
+    wrap.appendChild(panel);
+
+    wrap.appendChild(buildNotes('indoor', pl));
+
+    var confirming = confirmingPlantDelete === pl.id;
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'photo-btn danger' + (confirming ? ' is-confirming' : '');
+    del.style.alignSelf = 'flex-start';
+    del.textContent = confirming ? 'Tap again to remove this plant (its photos move to Unsorted)' : 'Remove this plant';
+    del.addEventListener('click', function () {
+      if (confirmingPlantDelete === pl.id) {
+        confirmingPlantDelete = null;
+        album.indoor.plants = album.indoor.plants.filter(function (x) { return x.id !== pl.id; });
+        album.indoor.list.forEach(function (p) { if (p.plant === pl.id) delete p.plant; });
+        saveAlbum();
+        location.hash = '#indoor';
+      } else {
+        confirmingPlantDelete = pl.id;
+        setTimeout(function () { if (confirmingPlantDelete === pl.id) { confirmingPlantDelete = null; render(); } }, 3000);
+        render();
+      }
+    });
+    wrap.appendChild(del);
   }
 
   function render() {
@@ -651,8 +941,14 @@ function syncWatch(key, localValueGetter, onRemote) {
     wrap.style.display = 'flex';
     wrap.style.flexDirection = 'column';
     wrap.style.gap = '1.2rem';
-    wrap.appendChild(buildPhotos(section));
-    wrap.appendChild(buildNotes(section));
+    if (section === 'indoor') {
+      var pid = currentPlantId();
+      if (pid) buildPlantPage(wrap, findPlant(pid));
+      else buildPlantGrid(wrap);
+    } else {
+      wrap.appendChild(buildPhotos(section));
+      wrap.appendChild(buildNotes(section));
+    }
     view.appendChild(wrap);
     var viewer = buildViewer(section);
     if (viewer) view.appendChild(viewer);
@@ -674,8 +970,10 @@ function syncWatch(key, localValueGetter, onRemote) {
   render();
 
   syncWatch(ALBUM_KEY, function () { return album; }, function (remote) {
+    migratedJustNow = false;
     album = normalise(remote);
     try { localStorage.setItem(ALBUM_KEY, JSON.stringify(album)); } catch (e) {}
+    if (migratedJustNow) { migratedJustNow = false; saveAlbum(); }
     // Don't yank the page out from under someone mid-typing: if the notes box
     // or a photo note has focus, the data is updated but the screen waits.
     var active = document.activeElement;
