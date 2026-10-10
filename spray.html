@@ -160,6 +160,46 @@
   .spray-btn.is-followup-due { background: var(--due); color: var(--due-ink); border-color: transparent; }
 
   .plant-note { font-size: 0.82rem; color: var(--ink-muted); font-style: italic; }
+
+  /* Season grid: one row per tree, one column per window, so a whole
+     window can be scanned top to bottom. Scrolls sideways on a phone,
+     with the tree names pinned on the left. */
+  .grid-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -1.25rem; padding: 0 1.25rem 0.5rem; }
+  .spray-grid {
+    display: grid;
+    grid-template-columns: 8.75rem repeat(5, minmax(10.5rem, max-content));
+    column-gap: 0.5rem;
+    align-items: stretch;
+  }
+  .sg-cat { grid-column: 1 / -1; padding: 1.4rem 0 0.35rem; }
+  .sg-cat:first-child { padding-top: 0; }
+  .sg-cat .category-heading { position: sticky; left: 0; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .sg-cat .category-heading::before { content: ''; width: 0.85rem; height: 0.85rem; border-radius: 0.25rem; background: var(--grp); flex-shrink: 0; }
+  .sg-head {
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-muted); padding: 0.2rem 0.35rem 0.35rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.35rem; white-space: nowrap;
+  }
+  .sg-head.is-now { color: var(--ink); font-weight: 700; }
+  .sg-head.is-now::after { content: 'now'; font-size: 0.6rem; letter-spacing: 0.06em; background: var(--accent); color: var(--surface); border-radius: 999px; padding: 0 0.4rem; }
+  .sg-name {
+    position: sticky; left: 0; z-index: 1;
+    padding: 0.55rem 0.5rem 0.55rem 0.6rem;
+    border-left: 5px solid var(--grp);
+    background: color-mix(in srgb, var(--grp) 11%, var(--surface-raised));
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 0.2rem; min-width: 0;
+  }
+  .sg-name .plant-link { font-size: 0.95rem; line-height: 1.25; }
+  .sg-last { font-size: 0.72rem; color: var(--ink-muted); line-height: 1.3; }
+  .sg-last strong { color: var(--ink); font-weight: 600; }
+  .sg-cell {
+    padding: 0.45rem 0.2rem; border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-start;
+  }
+  .sg-cell.is-now { background: color-mix(in srgb, var(--accent) 7%, transparent); border-radius: 0.3rem; padding-left: 0.35rem; padding-right: 0.35rem; }
+  .sg-note { grid-column: 1 / -1; padding: 0.35rem 0 0.6rem; border-bottom: 1px solid var(--border); }
+  .sg-note > div { position: sticky; left: 0; max-width: min(40rem, calc(100vw - 2.5rem)); }
   .plant-warn { font-size: 0.82rem; color: var(--warn); background: var(--warn-bg); border-radius: 0.4rem; padding: 0.5rem 0.65rem; font-weight: 600; }
 
   /* disease notes — same tap-to-open plate + editable-box pattern as
@@ -961,6 +1001,42 @@ function syncWatch(key, localValueGetter, onRemote) {
     return btn;
   }
 
+  var GRID_WINDOWS = ['leaffall', 'winter', 'budswell', 'petalfall', 'reactive'];
+  var gridScrollLeft = null;
+
+  // Which windows are "now" (0 = Jan). Budswell and petal fall overlap
+  // in October, so both light up then. Watch is never "now" - it's always on.
+  function currentWindows() {
+    var m = new Date().getMonth();
+    var out = [];
+    if (m >= 2 && m <= 4) out.push('leaffall');
+    if (m >= 5 && m <= 6) out.push('winter');
+    if (m >= 7 && m <= 9) out.push('budswell');
+    if (m >= 9 && m <= 11) out.push('petalfall');
+    return out;
+  }
+
+  function lastSpray(plant) {
+    var entries = entriesFor(plant.name).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    if (!entries.length) return null;
+    var e = entries[0];
+    var parts = (e.sprayId || '').split('::');
+    var def = (plant.sprays || []).filter(function (sp) { return sp.time === parts[1] && sp.key === parts[2]; })[0];
+    var label = def ? def.label.replace(/ \(reactive\)$/, '') : 'Spray';
+    var note = (e.note || '').replace(/\s+/g, ' ').trim();
+    return { date: e.date, text: note ? label + ' (' + note + ')' : label };
+  }
+
+  function timeAgo(iso) {
+    var days = Math.round((new Date(todayISO() + 'T00:00:00') - new Date(iso + 'T00:00:00')) / 86400000);
+    if (days <= 0) return 'today';
+    if (days === 1) return 'yesterday';
+    if (days < 14) return days + ' days ago';
+    if (days < 63) return Math.round(days / 7) + ' weeks ago';
+    var months = Math.round(days / 30.4);
+    return months + (months === 1 ? ' month ago' : ' months ago');
+  }
+
   function renderList() {
     viewEl.innerHTML = '';
 
@@ -969,7 +1045,7 @@ function syncWatch(key, localValueGetter, onRemote) {
     header.innerHTML =
       '<p class="kicker">Chapter &middot; fungal spray &amp; pest watch</p>' +
       '<h1>The Spray</h1>' +
-      '<p class="lede">One log per treatment, per tree, per window. Only shows a button where there’s an actual reason for it — nothing guessed. Tap a plant’s name for its full spray history.</p>';
+      '<p class="lede">One log per treatment, per tree, per window. Only shows a button where there’s an actual reason for it — nothing guessed. Each window has its own column, and the one we’re in now is highlighted: scroll sideways for the rest. Tap a plant’s name for its full spray history.</p>';
     viewEl.appendChild(header);
 
     var keyEl = document.createElement('div');
@@ -983,60 +1059,99 @@ function syncWatch(key, localValueGetter, onRemote) {
       '<span class="key-item"><span class="key-swatch due"></span>Follow-up due</span>';
     viewEl.appendChild(keyEl);
 
-    var catsEl = document.createElement('div');
+    // Remember sideways scroll across re-renders (every tap re-renders).
+    var scroller = document.createElement('div');
+    scroller.className = 'grid-scroll';
+    var grid = document.createElement('div');
+    grid.className = 'spray-grid';
+    scroller.appendChild(grid);
+
+    var nowWindows = currentWindows();
 
     CATEGORIES.forEach(function (cat) {
-      var section = document.createElement('div');
-      section.className = 'category has-grp ' + grpClass(cat.name);
+      var gc = grpClass(cat.name);
+      var catRow = document.createElement('div');
+      catRow.className = 'sg-cat ' + gc;
       var heading = document.createElement('h2');
       heading.className = 'category-heading';
       heading.textContent = cat.name;
-      section.appendChild(heading);
+      catRow.appendChild(heading);
+      grid.appendChild(catRow);
 
-      var cards = document.createElement('div');
-      cards.className = 'cards';
+      var corner = document.createElement('div');
+      corner.className = 'sg-head';
+      corner.style.position = 'sticky'; corner.style.left = '0'; corner.style.background = 'var(--surface)'; corner.style.zIndex = '1';
+      corner.textContent = 'Tree';
+      grid.appendChild(corner);
+      GRID_WINDOWS.forEach(function (w) {
+        var h = document.createElement('div');
+        h.className = 'sg-head' + (nowWindows.indexOf(w) >= 0 ? ' is-now' : '');
+        h.setAttribute('data-window', w);
+        h.innerHTML = '<span class="key-swatch ' + TIME_DEFS[w].cls + '"></span>' + escapeHtml(TIME_DEFS[w].label);
+        grid.appendChild(h);
+      });
 
       cat.plants.forEach(function (plant) {
-        var card = document.createElement('div');
-        card.className = 'card has-grp ' + grpClass(cat.name);
-
+        var nameCell = document.createElement('div');
+        nameCell.className = 'sg-name ' + gc;
         var link = document.createElement('button');
         link.type = 'button';
         link.className = 'plant-link';
         link.innerHTML = '<span>' + escapeHtml(displayName(plant)) + '</span><span class="plant-link-arrow">&rarr;</span>';
         link.addEventListener('click', function () { location.hash = '#plant/' + encodeURIComponent(plant.name); });
-        card.appendChild(link);
+        nameCell.appendChild(link);
+        var ls = lastSpray(plant);
+        if (ls) {
+          var lsEl = document.createElement('div');
+          lsEl.className = 'sg-last';
+          lsEl.innerHTML = 'Last spray <strong>' + timeAgo(ls.date) + '</strong> · ' + escapeHtml(ls.text);
+          lsEl.title = fmtDateShort(ls.date);
+          nameCell.appendChild(lsEl);
+        }
+        grid.appendChild(nameCell);
 
-        if (plant.sprays && plant.sprays.length) {
-          var row = document.createElement('div');
-          row.className = 'spray-row';
-          plant.sprays.forEach(function (s) {
-            row.appendChild(buildSprayButton(plant, s));
+        GRID_WINDOWS.forEach(function (w) {
+          var cell = document.createElement('div');
+          cell.className = 'sg-cell' + (nowWindows.indexOf(w) >= 0 ? ' is-now' : '');
+          (plant.sprays || []).forEach(function (sp) {
+            if (sp.time === w) cell.appendChild(buildSprayButton(plant, sp));
           });
-          card.appendChild(row);
-        }
+          grid.appendChild(cell);
+        });
 
-        if (plant.note) {
-          var note = document.createElement('div');
-          note.className = 'plant-note';
-          note.textContent = plant.note;
-          card.appendChild(note);
+        if (plant.note || plant.warn) {
+          var noteRow = document.createElement('div');
+          noteRow.className = 'sg-note';
+          var inner = document.createElement('div');
+          if (plant.note) {
+            var note = document.createElement('div');
+            note.className = 'plant-note';
+            note.textContent = plant.note;
+            inner.appendChild(note);
+          }
+          if (plant.warn) {
+            var warn = document.createElement('div');
+            warn.className = 'plant-warn';
+            warn.textContent = '⚠ ' + plant.warn;
+            inner.appendChild(warn);
+          }
+          noteRow.appendChild(inner);
+          grid.appendChild(noteRow);
         }
-        if (plant.warn) {
-          var warn = document.createElement('div');
-          warn.className = 'plant-warn';
-          warn.textContent = '⚠ ' + plant.warn;
-          card.appendChild(warn);
-        }
-
-        cards.appendChild(card);
       });
-
-      section.appendChild(cards);
-      catsEl.appendChild(section);
     });
 
-    viewEl.appendChild(catsEl);
+    viewEl.appendChild(scroller);
+
+    // First visit: scroll so the current window sits next to the names.
+    // After that, keep wherever she'd scrolled to.
+    if (gridScrollLeft === null) {
+      var firstNow = grid.querySelector('.sg-head.is-now');
+      if (firstNow) scroller.scrollLeft = Math.max(0, firstNow.offsetLeft - grid.firstElementChild.offsetLeft - 9.25 * 16);
+    } else {
+      scroller.scrollLeft = gridScrollLeft;
+    }
+    scroller.addEventListener('scroll', function () { gridScrollLeft = scroller.scrollLeft; });
 
     var notesSection = document.createElement('div');
     notesSection.className = 'category';
