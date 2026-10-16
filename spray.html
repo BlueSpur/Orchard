@@ -310,6 +310,7 @@
     font-family: var(--font-mono); cursor: pointer; opacity: 0; transition: opacity 0.12s ease;
   }
   .history-row:hover .history-del, .history-del:focus-visible { opacity: 1; }
+  @media (hover: none) { .history-del { opacity: 0.6; padding: 0.15rem 0.45rem; } }
   .history-del:hover { color: var(--autumn, var(--warn)); }
   .history-del:focus-visible { outline: 2px solid var(--accent); }
   .history-del.is-confirming { opacity: 1; color: var(--warn-ink, var(--ink)); background: var(--warn-bg); border-radius: 999px; padding: 0 0.25rem; }

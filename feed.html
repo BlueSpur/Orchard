@@ -500,6 +500,7 @@
   }
   .history-row:hover .history-del,
   .history-del:focus-visible { opacity: 1; }
+  @media (hover: none) { .history-del { opacity: 0.6; padding: 0.15rem 0.45rem; } }
   .history-del:hover { color: var(--autumn); }
   .history-del:focus-visible { outline: 2px solid var(--accent); }
   .history-del.is-confirming {
